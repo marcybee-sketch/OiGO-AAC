@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuickVoice AAC</title>
+<style>
+  :root {
+    --bg: #FFF8F0;
+    --card: #FFFFFF;
+    --primary: #FF6B35;
+    --primary-light: #FFF0EB;
+    --secondary: #4ECDC4;
+    --secondary-light: #E8FAF9;
+    --text: #2D2D2D;
+    --text-muted: #888;
+    --radius: 22px;
+    --shadow: 0 6px 24px rgba(0,0,0,0.09);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 16px 60px;
+  }
+  header { text-align: center; margin-bottom: 24px; }
+  .logo { font-size: 2rem; font-weight: 900; color: var(--primary); letter-spacing: -0.5px; line-height: 1; }
+  .logo span { color: var(--secondary); }
+  .tagline { font-size: 0.88rem; color: var(--text-muted); font-weight: 600; margin-top: 5px; }
+
+  .main-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px;
+    width: 100%;
+    max-width: 680px;
+  }
+
+  .field-label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.8px;
+    color: var(--primary);
+    margin-bottom: 8px;
+  }
+  .field-label.teal { color: var(--secondary); }
+
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .text-input {
+    flex: 1;
+    border: 2.5px solid #E8E8E8;
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    outline: none;
+    background: #FAFAFA;
+    -webkit-appearance: none;
+    appearance: none;
+    min-width: 0;
+  }
+  .text-input:focus { border-color: var(--primary); background: #fff; }
+  .text-input::placeholder { color: #C8C8C8; font-weight: 500; }
+
+  .mic-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    border: 2.5px solid #E0E0E0;
+    background: #F4F4F4;
+    font-size: 1.35rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .mic-btn:active { background: #EBEBEB; }
+  .mic-btn.recording {
+    background: #FFE8E2;
+    border-color: var(--primary);
+    animation: mic-pulse 0.85s ease-in-out infinite;
+  }
+  @keyframes mic-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,107,53,0.45); }
+    50%       { box-shadow: 0 0 0 9px rgba(255,107,53,0); }
+  }
+
+  .mic-status {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--primary);
+    min-height: 16px;
+    margin-top: -10px;
+    margin-bottom: 14px;
+    padding-left: 4px;
+  }
+  .mic-status.idle { color: var(--text-muted); }
+
+  .options-hint {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-top: -10px;
+    margin-bottom: 18px;
+  }
+
+  .speech-notice {
+    display: none;
+    background: #F8F8F0;
+    border: 1.5px solid #E8E4C8;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #7A6F30;
+    margin-bottom: 14px;
+  }
+  .speech-notice.visible { display: block; }
+
+  .go-btn {
+    width: 100%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 16px;
+    font-size: 1.05rem;
+    font-weight: 900;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    letter-spacing: 0.3px;
+  }
+  .go-btn:active { opacity: 0.85; }
+
+  .divider { display: flex; align-items: center; gap: 10px; margin: 20px 0; }
+  .divider-line { flex: 1; height: 1.5px; background: #EFEFEF; }
+  .divider-text { font-size: 0.68rem; font-weight: 800; color: #CCC; letter-spacing: 1.5px; text-transform: uppercase; }
+
+  .quick-label { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.8px; color: var(--text-muted); margin-bottom: 10px; }
+  .quick-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    background: #F4F4F4; border: 2px solid #E8E8E8; border-radius: 50px;
+    padding: 8px 14px; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); cursor: pointer;
+  }
+  .chip:active { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
+
+  .question-display { display: none; background: var(--secondary-light); border-radius: 16px; padding: 16px 18px; margin-top: 22px; }
+  .question-display.visible { display: block; }
+  .q-meta { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.8px; color: var(--secondary); margin-bottom: 8px; }
+  .q-row { display: flex; align-items: flex-start; gap: 12px; }
+  .q-text { flex: 1; font-size: 1.45rem; font-weight: 900; color: var(--text); line-height: 1.3; }
+  .speak-btn {
+    background: var(--secondary); border: none; border-radius: 12px; padding: 10px 13px;
+    font-size: 1.25rem; cursor: pointer; flex-shrink: 0; display: flex; align-items: center;
+    gap: 5px; -webkit-appearance: none; appearance: none;
+  }
+  .speak-btn:active { opacity: 0.75; }
+  .speak-btn-label { font-size: 0.72rem; font-weight: 800; color: white; }
+  .speak-btn.speaking { background: #29a89f; }
+
+  .options-section { display: none; margin-top: 20px; }
+  .options-section.visible { display: block; }
+  .tap-label { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.8px; color: var(--text-muted); margin-bottom: 14px; }
+  .options-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
+  .option-card {
+    background: #FAFAFA; border: 2.5px solid #EFEFEF; border-radius: 18px;
+    padding: 18px 10px 14px; display: flex; flex-direction: column; align-items: center;
+    gap: 9px; cursor: pointer; -webkit-appearance: none; user-select: none;
+  }
+  .option-card:active { background: var(--primary-light); border-color: var(--primary); transform: scale(0.97); }
+  .option-card.selected { background: var(--primary-light); border-color: var(--primary); }
+  .option-emoji { font-size: 3rem; line-height: 1; }
+  .option-label { font-size: 0.92rem; font-weight: 800; color: var(--text); text-align: center; line-height: 1.2; }
+
+  .answer-banner { display: none; margin-top: 18px; background: linear-gradient(135deg, #FF6B35, #FF9055); border-radius: 16px; padding: 16px 18px; align-items: center; gap: 12px; }
+  .answer-banner.visible { display: flex; }
+  .answer-emoji-big { font-size: 2.6rem; flex-shrink: 0; }
+  .answer-text-wrap { flex: 1; min-width: 0; }
+  .answer-said { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.75); }
+  .answer-choice { font-size: 1.5rem; font-weight: 900; color: white; line-height: 1.2; }
+  .banner-btns { display: flex; gap: 8px; flex-shrink: 0; }
+  .speak-answer-btn, .new-btn {
+    background: rgba(255,255,255,0.22); border: 2px solid rgba(255,255,255,0.35);
+    border-radius: 11px; color: white; font-weight: 800; font-size: 0.82rem;
+    padding: 8px 12px; cursor: pointer; -webkit-appearance: none; white-space: nowrap;
+  }
+  .speak-answer-btn { font-size: 1.1rem; padding: 8px 11px; }
+  .speak-answer-btn:active, .new-btn:active { opacity: 0.7; }
+
+  .error-msg {
+    display: none; background: #FFF0F0; border: 2px solid #FFBCBC;
+    border-radius: 12px; padding: 12px 16px; color: #C0392B;
+    font-weight: 700; font-size: 0.88rem; margin-top: 12px;
+  }
+  .error-msg.visible { display: block; }
+
+  /* ── Mic Help Modal ─────────────────────────────────────────── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.visible { display: flex; }
+
+  .modal {
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.25);
+  }
+  .modal-title {
+    font-size: 1.1rem;
+    font-weight: 900;
+    color: var(--text);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .modal-sub {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-bottom: 18px;
+    line-height: 1.5;
+  }
+
+  .steps { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+  .step {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    font-weight: 900;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .step-text {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.45;
+  }
+  .step-text b { color: var(--primary); }
+  .step-text code {
+    background: #F4F4F4;
+    border-radius: 6px;
+    padding: 1px 6px;
+    font-family: -apple-system, monospace;
+    font-size: 0.82rem;
+  }
+
+  .modal-divider { height: 1.5px; background: #F0F0F0; margin: 16px 0; }
+
+  .modal-alt {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+  .modal-alt b { color: var(--text); }
+
+  .modal-close {
+    width: 100%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 13px;
+    font-size: 0.95rem;
+    font-weight: 900;
+    cursor: pointer;
+    -webkit-appearance: none;
+  }
+  .modal-close:active { opacity: 0.85; }
+
+  @media (max-width: 400px) {
+    .options-grid { grid-template-columns: repeat(2, 1fr); }
+    .q-text { font-size: 1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Mic Help Modal -->
+<div class="modal-overlay" id="micHelpModal">
+  <div class="modal">
+    <div class="modal-title">🎤 Enable Microphone</div>
+    <div class="modal-sub">The mic is blocked in the Claude viewer. Follow these steps to use voice input:</div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">On this page, tap the <b>⋯ Share button</b> at the bottom of Safari</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">Tap <b>"Open in New Tab"</b> — this gives the page a real URL with mic access</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">Tap the mic button 🎤 again — Safari will ask for permission, tap <b>Allow</b></div>
+      </div>
+    </div>
+
+    <div class="modal-divider"></div>
+
+    <div class="modal-alt">
+      <b>Already did that and still blocked?</b><br>
+      Go to <b>iPhone Settings → Safari → Microphone</b> and make sure it's set to <b>Allow</b>.
+    </div>
+
+    <div class="modal-alt">
+      <b>Prefer to just type?</b> The app works great without the mic — just type your question and options normally.
+    </div>
+
+    <button class="modal-close" id="modalCloseBtn">Got it</button>
+  </div>
+</div>
+
+<header>
+  <div class="logo">Quick<span>Voice</span> AAC</div>
+  <div class="tagline">Speak or type a question + options → visual cards instantly</div>
+</header>
+
+<div class="main-card">
+
+  <div class="speech-notice" id="speechNotice">
+    🎤 Voice input is not supported in this browser. Type your question and options — everything else works!
+  </div>
+
+  <div class="field-label">📢 The question to show</div>
+  <div class="input-row">
+    <input class="text-input" id="questionInput" type="text"
+      placeholder="What would you like to eat?" maxlength="200" />
+    <button class="mic-btn" id="micQBtn" title="Speak your question">🎤</button>
+  </div>
+  <div class="mic-status idle" id="micQStatus">Tap 🎤 to speak your question</div>
+
+  <div class="field-label teal">✏️ Answer options (separate with commas)</div>
+  <div class="input-row">
+    <input class="text-input" id="optionsInput" type="text"
+      placeholder="chicken, steak, fish, pizza, salad" maxlength="400" />
+    <button class="mic-btn" id="micOBtn" title="Speak your options">🎤</button>
+  </div>
+  <div class="mic-status idle" id="micOStatus">Say options like: chicken, fish, pizza</div>
+  <div class="options-hint">💡 Each word gets matched to a visual icon automatically</div>
+
+  <button class="go-btn" id="goBtn">🎨 Show Visual Cards</button>
+  <div class="error-msg" id="errorMsg"></div>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-text">or try a quick set</div>
+    <div class="divider-line"></div>
+  </div>
+
+  <div class="quick-label">Quick sets</div>
+  <div class="quick-chips" id="quickChips">
+    <div class="chip" data-q="What would you like to eat?" data-o="chicken, steak, fish, pizza, pasta, salad">🍽️ Foods</div>
+    <div class="chip" data-q="What would you like to drink?" data-o="water, juice, milk, soda, hot chocolate">🥤 Drinks</div>
+    <div class="chip" data-q="What would you like to do?" data-o="watch TV, play outside, draw, read, video game, music">🎮 Activities</div>
+    <div class="chip" data-q="How are you feeling?" data-o="happy, sad, angry, tired, hungry, sick, excited">😊 Feelings</div>
+    <div class="chip" data-q="Where would you like to go?" data-o="park, store, home, school, restaurant, library">📍 Places</div>
+    <div class="chip" data-q="What do you want to wear?" data-o="t-shirt, sweater, shorts, jeans, pajamas">👕 Clothes</div>
+    <div class="chip" data-q="What do you need right now?" data-o="bathroom, water, hug, quiet, snack, help, break">🆘 Needs</div>
+    <div class="chip" data-q="What would you like for a snack?" data-o="apple, crackers, chips, cookies, grapes, yogurt">🍎 Snacks</div>
+  </div>
+
+  <div class="question-display" id="questionDisplay">
+    <div class="q-meta">Question</div>
+    <div class="q-row">
+      <div class="q-text" id="questionText"></div>
+      <button class="speak-btn" id="speakQBtn">
+        🔊 <span class="speak-btn-label">Speak</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="options-section" id="optionsSection">
+    <div class="tap-label">👆 Tap your answer</div>
+    <div class="options-grid" id="optionsGrid"></div>
+  </div>
+
+  <div class="answer-banner" id="answerBanner">
+    <div class="answer-emoji-big" id="answerEmoji"></div>
+    <div class="answer-text-wrap">
+      <div class="answer-said">I want...</div>
+      <div class="answer-choice" id="answerChoice"></div>
+    </div>
+    <div class="banner-btns">
+      <button class="speak-answer-btn" id="speakAnsBtn">🔊</button>
+      <button class="new-btn" id="newBtn">New ↺</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+var EMOJI_MAP = {
+  chicken:"🍗",steak:"🥩",fish:"🐟",pizza:"🍕",pasta:"🍝",salad:"🥗",
+  burger:"🍔",hotdog:"🌭",taco:"🌮",burrito:"🌯",sushi:"🍣",sandwich:"🥪",
+  soup:"🍜",rice:"🍚",bread:"🍞",egg:"🥚",eggs:"🥚",noodles:"🍜",
+  shrimp:"🍤",turkey:"🦃",bacon:"🥓",ham:"🍖",meat:"🥩",fries:"🍟",
+  waffle:"🧇",pancake:"🥞",pancakes:"🥞",cereal:"🥣",oatmeal:"🥣",toast:"🍞",bagel:"🥯",
+  apple:"🍎",banana:"🍌",grapes:"🍇",orange:"🍊",strawberry:"🍓",
+  watermelon:"🍉",mango:"🥭",pineapple:"🍍",cherry:"🍒",peach:"🍑",
+  pear:"🍐",lemon:"🍋",blueberry:"🫐",blueberries:"🫐",
+  carrot:"🥕",broccoli:"🥦",corn:"🌽",potato:"🥔",tomato:"🍅",
+  avocado:"🥑",cucumber:"🥒",pepper:"🫑",lettuce:"🥬",
+  crackers:"🥨",chips:"🍟",cookies:"🍪",cookie:"🍪",cake:"🎂",cupcake:"🧁",
+  candy:"🍬",chocolate:"🍫",icecream:"🍦",donut:"🍩",yogurt:"🍦",popcorn:"🍿",nuts:"🥜",
+  water:"💧",juice:"🧃",milk:"🥛",soda:"🥤",tea:"🍵",coffee:"☕",
+  "hot chocolate":"🍫",cocoa:"🍫",lemonade:"🍋",smoothie:"🥤",
+  "watch tv":"📺",tv:"📺",television:"📺","video game":"🎮",videogame:"🎮",
+  game:"🎮",games:"🎮","play outside":"🌳",outside:"🌳",
+  run:"🏃",running:"🏃",swim:"🏊",swimming:"🏊",bike:"🚲",
+  draw:"🎨",drawing:"🎨",paint:"🎨",read:"📚",reading:"📚",book:"📖",
+  music:"🎵",sing:"🎤",dance:"💃",sleep:"😴",nap:"😴",
+  play:"🧸",toys:"🧸",lego:"🧱",puzzle:"🧩",craft:"✂️",crafts:"✂️",
+  soccer:"⚽",basketball:"🏀",baseball:"⚾",football:"🏈",tennis:"🎾",
+  happy:"😊",sad:"😢",angry:"😠",mad:"😠",tired:"😴",sleepy:"😴",
+  hungry:"🍽️",thirsty:"💧",sick:"🤒",excited:"🤩",scared:"😨",
+  nervous:"😰",calm:"😌",bored:"😑",frustrated:"😤",surprised:"😲",confused:"🤔",silly:"🤪",
+  park:"🌳",store:"🛒",home:"🏠",school:"🏫",restaurant:"🍽️",
+  library:"📚",beach:"🏖️",pool:"🏊",playground:"🛝",hospital:"🏥",mall:"🏬",movies:"🎬",
+  shirt:"👕","t-shirt":"👕",tshirt:"👕",sweater:"🧥",hoodie:"🧥",jacket:"🧥",
+  shorts:"🩳",jeans:"👖",pants:"👖",dress:"👗",pajamas:"🩳",
+  socks:"🧦",shoes:"👟",sneakers:"👟",hat:"🧢",
+  bathroom:"🚽",toilet:"🚽",potty:"🚽",hug:"🤗",quiet:"🤫",
+  snack:"🍎",help:"🆘",break:"⏸️",medicine:"💊",blanket:"🛏️",
+  mom:"👩",mama:"👩",mommy:"👩",dad:"👨",daddy:"👨",
+  sister:"👧",brother:"👦",friend:"🧑",teacher:"👩‍🏫",doctor:"👨‍⚕️",
+  grandma:"👵",grandpa:"👴",baby:"👶",
+  dog:"🐶",cat:"🐱",bird:"🐦",rabbit:"🐰",hamster:"🐹",
+  turtle:"🐢",horse:"🐴",cow:"🐮",pig:"🐷",duck:"🦆",
+  bear:"🐻",lion:"🦁",elephant:"🐘",monkey:"🐒",
+  yes:"✅",no:"❌",maybe:"🤔",ok:"👍",stop:"✋",
+  more:"➕",done:"✅",wait:"⏳",good:"👍",bad:"👎",
+  love:"❤️",star:"⭐",sun:"☀️",moon:"🌙",hot:"🌡️",cold:"🥶"
+};
+
+function getEmoji(word) {
+  var key = word.toLowerCase().trim();
+  if (EMOJI_MAP[key]) return EMOJI_MAP[key];
+  var keys = Object.keys(EMOJI_MAP);
+  for (var i = 0; i < keys.length; i++) {
+    if (keys[i].indexOf(key) !== -1 || key.indexOf(keys[i]) !== -1) return EMOJI_MAP[keys[i]];
+  }
+  var fb = ['🔵','🟢','🟡','🟠','🔴','🟣','⚪','🟤','🔶','🔷'];
+  return fb[key.charCodeAt(0) % fb.length];
+}
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+// ── TTS ───────────────────────────────────────────────────────────────────────
+function speak(text, btnEl) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  var u = new SpeechSynthesisUtterance(text);
+  u.rate = 0.88; u.pitch = 1.05; u.volume = 1;
+  var voices = window.speechSynthesis.getVoices();
+  var v = null;
+  for (var i = 0; i < voices.length; i++) {
+    if (/en[-_]US/i.test(voices[i].lang)) { v = voices[i]; break; }
+  }
+  if (!v) { for (var i = 0; i < voices.length; i++) { if (/en/i.test(voices[i].lang)) { v = voices[i]; break; } } }
+  if (v) u.voice = v;
+  if (btnEl) {
+    btnEl.classList.add('speaking');
+    u.onend  = function() { btnEl.classList.remove('speaking'); };
+    u.onerror = function() { btnEl.classList.remove('speaking'); };
+  }
+  window.speechSynthesis.speak(u);
+}
+if (window.speechSynthesis) {
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = function() { window.speechSynthesis.getVoices(); };
+}
+
+// ── Mic Help Modal ────────────────────────────────────────────────────────────
+function showMicHelp() {
+  document.getElementById('micHelpModal').classList.add('visible');
+}
+document.getElementById('modalCloseBtn').addEventListener('click', function() {
+  document.getElementById('micHelpModal').classList.remove('visible');
+});
+document.getElementById('micHelpModal').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('visible');
+});
+
+// ── Speech Recognition ────────────────────────────────────────────────────────
+var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+var activeRecognizer = null;
+
+if (!SpeechRecognition) {
+  document.getElementById('speechNotice').classList.add('visible');
+  document.getElementById('micQBtn').style.display = 'none';
+  document.getElementById('micOBtn').style.display = 'none';
+  document.getElementById('micQStatus').style.display = 'none';
+  document.getElementById('micOStatus').style.display = 'none';
+}
+
+function startRecognition(inputId, btnId, statusId) {
+  if (!SpeechRecognition) return;
+  var inputEl  = document.getElementById(inputId);
+  var btnEl    = document.getElementById(btnId);
+  var statusEl = document.getElementById(statusId);
+
+  if (btnEl.classList.contains('recording')) {
+    if (activeRecognizer) { activeRecognizer.stop(); activeRecognizer = null; }
+    btnEl.classList.remove('recording');
+    statusEl.textContent = 'Tap 🎤 to speak';
+    statusEl.className = 'mic-status idle';
+    return;
+  }
+
+  if (activeRecognizer) { activeRecognizer.stop(); activeRecognizer = null; }
+  document.querySelectorAll('.mic-btn').forEach(function(b) { b.classList.remove('recording'); });
+
+  var recognition = new SpeechRecognition();
+  recognition.lang = 'en-US';
+  recognition.interimResults = true;
+  recognition.continuous = false;
+  recognition.maxAlternatives = 1;
+  activeRecognizer = recognition;
+
+  btnEl.classList.add('recording');
+  statusEl.textContent = '🔴 Listening…';
+  statusEl.className = 'mic-status';
+
+  recognition.onresult = function(event) {
+    var transcript = '';
+    for (var i = event.resultIndex; i < event.results.length; i++) {
+      transcript += event.results[i][0].transcript;
+    }
+    inputEl.value = transcript;
+    statusEl.textContent = '🔴 ' + transcript;
+  };
+
+  recognition.onend = function() {
+    btnEl.classList.remove('recording');
+    activeRecognizer = null;
+    var final = inputEl.value.trim();
+    if (final) {
+      statusEl.textContent = '✅ Got it!';
+      statusEl.className = 'mic-status';
+      setTimeout(function() {
+        statusEl.textContent = 'Tap 🎤 to speak again';
+        statusEl.className = 'mic-status idle';
+      }, 2000);
+    } else {
+      statusEl.textContent = 'Nothing heard — tap 🎤 to retry';
+      statusEl.className = 'mic-status idle';
+    }
+  };
+
+  recognition.onerror = function(event) {
+    btnEl.classList.remove('recording');
+    activeRecognizer = null;
+    if (event.error === 'not-allowed') {
+      showMicHelp();
+      statusEl.textContent = 'Mic blocked — see instructions';
+      statusEl.className = 'mic-status idle';
+    } else if (event.error === 'no-speech') {
+      statusEl.textContent = 'No speech heard — tap 🎤 to retry';
+      statusEl.className = 'mic-status idle';
+    } else if (event.error === 'network') {
+      statusEl.textContent = '⚠️ No network — type instead';
+      statusEl.className = 'mic-status idle';
+    } else {
+      statusEl.textContent = 'Error — tap 🎤 to retry';
+      statusEl.className = 'mic-status idle';
+    }
+  };
+
+  try {
+    recognition.start();
+  } catch(e) {
+    btnEl.classList.remove('recording');
+    statusEl.textContent = 'Could not start mic — try again';
+    statusEl.className = 'mic-status idle';
+  }
+}
+
+// ── Build cards ───────────────────────────────────────────────────────────────
+function buildCards() {
+  var question   = document.getElementById('questionInput').value.trim();
+  var optionsRaw = document.getElementById('optionsInput').value.trim();
+  var errorMsg   = document.getElementById('errorMsg');
+
+  errorMsg.classList.remove('visible');
+  document.getElementById('answerBanner').classList.remove('visible');
+
+  if (!question) { errorMsg.textContent = '⚠️ Please enter a question first.'; errorMsg.classList.add('visible'); return; }
+  if (!optionsRaw) { errorMsg.textContent = '⚠️ Please enter answer options separated by commas.'; errorMsg.classList.add('visible'); return; }
+
+  var items = optionsRaw.split(',').map(function(s){ return s.trim(); }).filter(function(s){ return s.length > 0; });
+  if (items.length < 2) { errorMsg.textContent = '⚠️ Please enter at least 2 options. Example: chicken, pizza, fish'; errorMsg.classList.add('visible'); return; }
+
+  document.getElementById('questionText').textContent = question;
+  document.getElementById('questionDisplay').classList.add('visible');
+  speak(question, document.getElementById('speakQBtn'));
+
+  var grid = document.getElementById('optionsGrid');
+  grid.innerHTML = '';
+  items.forEach(function(item) {
+    var emoji = getEmoji(item);
+    var label = cap(item);
+    var card  = document.createElement('div');
+    card.className = 'option-card';
+    card.innerHTML = '<div class="option-emoji">' + emoji + '</div><div class="option-label">' + label + '</div>';
+    card.addEventListener('click', function() {
+      document.querySelectorAll('.option-card').forEach(function(c){ c.classList.remove('selected'); });
+      card.classList.add('selected');
+      document.getElementById('answerEmoji').textContent  = emoji;
+      document.getElementById('answerChoice').textContent = label;
+      document.getElementById('answerBanner').classList.add('visible');
+      document.getElementById('answerBanner').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      speak('I want ' + label, document.getElementById('speakAnsBtn'));
+    });
+    grid.appendChild(card);
+  });
+
+  document.getElementById('optionsSection').classList.add('visible');
+  document.getElementById('optionsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function resetAll() {
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  if (activeRecognizer) { activeRecognizer.stop(); activeRecognizer = null; }
+  document.querySelectorAll('.mic-btn').forEach(function(b){ b.classList.remove('recording'); });
+  document.getElementById('questionInput').value = '';
+  document.getElementById('optionsInput').value  = '';
+  document.getElementById('micQStatus').textContent = 'Tap 🎤 to speak your question';
+  document.getElementById('micQStatus').className   = 'mic-status idle';
+  document.getElementById('micOStatus').textContent = 'Say options like: chicken, fish, pizza';
+  document.getElementById('micOStatus').className   = 'mic-status idle';
+  document.getElementById('questionDisplay').classList.remove('visible');
+  document.getElementById('optionsSection').classList.remove('visible');
+  document.getElementById('answerBanner').classList.remove('visible');
+  document.getElementById('errorMsg').classList.remove('visible');
+  window.scrollTo(0, 0);
+}
+
+// ── Wire up ───────────────────────────────────────────────────────────────────
+document.getElementById('goBtn').addEventListener('click', buildCards);
+document.getElementById('newBtn').addEventListener('click', resetAll);
+document.getElementById('micQBtn').addEventListener('click', function() { startRecognition('questionInput','micQBtn','micQStatus'); });
+document.getElementById('micOBtn').addEventListener('click', function() { startRecognition('optionsInput','micOBtn','micOStatus'); });
+document.getElementById('speakQBtn').addEventListener('click', function() { var t = document.getElementById('questionText').textContent; if (t) speak(t, this); });
+document.getElementById('speakAnsBtn').addEventListener('click', function() { var t = document.getElementById('answerChoice').textContent; if (t) speak('I want ' + t, this); });
+document.getElementById('quickChips').addEventListener('click', function(e) {
+  var chip = e.target.closest('.chip');
+  if (!chip) return;
+  document.getElementById('questionInput').value = chip.dataset.q;
+  document.getElementById('optionsInput').value  = chip.dataset.o;
+  buildCards();
+});
+document.getElementById('questionInput').addEventListener('keydown', function(e){ if (e.key === 'Enter') buildCards(); });
+document.getElementById('optionsInput').addEventListener('keydown',  function(e){ if (e.key === 'Enter') buildCards(); });
+</script>
+</body>
+</html>
