@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="OiGO">
+<meta name="theme-color" content="#2D7FF9">
+<title>OiGO</title>
+<link rel="manifest" href="manifest.json">
+<style>
+:root {
+  --primary: #2D7FF9;
+  --primary-light: #EBF2FF;
+  --primary-dark: #1A6AE0;
+  --secondary: #22C580;
+  --secondary-light: #E6FAF3;
+  --accent: #FFE66D;
+  --bg: #F0F5FF;
+  --card: #FFFFFF;
+  --text: #1A1A2E;
+  --text-muted: #8A8A9A;
+  --border: #EBEBF0;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.07);
+  --shadow-md: 0 6px 24px rgba(0,0,0,0.10);
+  --shadow-lg: 0 16px 48px rgba(0,0,0,0.15);
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+  font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-serif;
+  background:var(--bg);
+  min-height:100vh;
+  color:var(--text);
+  padding-bottom:calc(70px + var(--safe-bottom));
+}
+
+/* ── NAV BAR ── */
+.nav{
+  position:fixed;bottom:0;left:0;right:0;
+  background:rgba(255,255,255,0.95);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-top:1px solid var(--border);
+  display:flex;
+  padding:8px 0 calc(8px + var(--safe-bottom));
+  z-index:100;
+  box-shadow:0 -4px 20px rgba(0,0,0,0.06);
+}
+.nav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  background:none;border:none;cursor:pointer;padding:6px 4px;
+  font-size:0.62rem;font-weight:700;color:var(--text-muted);
+  text-transform:uppercase;letter-spacing:0.8px;transition:color 0.15s;
+}
+.nav-btn .nav-icon{font-size:1.4rem;line-height:1}
+.nav-btn.active{color:var(--primary)}
+.nav-btn.active .nav-icon{filter:drop-shadow(0 0 6px rgba(45,127,249,0.4))}
+
+/* ── PAGE ── */
+.page{display:none;padding:24px 16px 16px;max-width:700px;margin:0 auto;animation:fadeIn 0.2s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── HEADERS ── */
+.page-header{margin-bottom:22px;text-align:center}
+.logo{font-size:1.9rem;font-weight:900;color:var(--primary);letter-spacing:-0.5px;line-height:1}
+.logo span{color:var(--secondary)}
+.tagline{font-size:0.84rem;color:var(--text-muted);font-weight:600;margin-top:4px}
+.section-title{font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:var(--primary);margin-bottom:8px}
+.section-title.teal{color:var(--secondary)}
+.section-title.gray{color:var(--text-muted)}
+
+/* ── CARD ── */
+.card{background:var(--card);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);padding:22px;margin-bottom:16px}
+
+/* ── INPUTS ── */
+.input-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.text-input{
+  flex:1;border:2.5px solid var(--border);border-radius:var(--radius-sm);
+  padding:13px 15px;font-family:inherit;font-size:1rem;font-weight:700;
+  color:var(--text);outline:none;background:#FAFAFA;min-width:0;
+  -webkit-appearance:none;appearance:none;transition:border-color 0.2s;
+}
+.text-input:focus{border-color:var(--primary);background:#fff}
+.text-input::placeholder{color:#C8C8C8;font-weight:500}
+.input-hint{font-size:0.75rem;color:var(--text-muted);font-weight:600;margin-bottom:14px;padding-left:2px}
+.mic-status{font-size:0.74rem;font-weight:700;color:var(--text-muted);min-height:15px;margin-bottom:12px;padding-left:2px}
+.mic-status.live{color:var(--primary)}
+
+/* ── BUTTONS ── */
+.btn-primary{
+  width:100%;background:var(--primary);color:#fff;border:none;
+  border-radius:var(--radius-sm);padding:15px;font-family:inherit;
+  font-size:1rem;font-weight:900;cursor:pointer;letter-spacing:0.2px;
+  transition:opacity 0.15s,transform 0.1s;
+  box-shadow:0 4px 16px rgba(45,127,249,0.3);
+}
+.btn-primary:active{opacity:0.85;transform:scale(0.99)}
+.btn-secondary{
+  background:#F4F4F8;border:2px solid var(--border);color:var(--text);
+  border-radius:var(--radius-sm);padding:11px 18px;font-family:inherit;
+  font-size:0.88rem;font-weight:800;cursor:pointer;transition:background 0.15s;
+}
+.btn-secondary:active{background:#EBEBF0}
+.mic-btn{
+  width:50px;height:50px;border-radius:var(--radius-sm);border:2.5px solid var(--border);
+  background:#F4F4F8;font-size:1.3rem;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0;-webkit-appearance:none;transition:all 0.15s;
+}
+.mic-btn.recording{background:#FFE8E2;border-color:var(--primary);animation:micPulse 0.85s infinite}
+@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(45,127,249,.45)}50%{box-shadow:0 0 0 8px rgba(45,127,249,0)}}
+.speak-btn{
+  background:var(--secondary);border:none;border-radius:10px;
+  padding:9px 12px;font-size:1.2rem;cursor:pointer;display:flex;
+  align-items:center;gap:4px;flex-shrink:0;transition:background 0.15s;
+}
+.speak-btn.active{background:#29a89f}
+.speak-btn span{font-size:0.7rem;font-weight:800;color:#fff}
+
+/* ── CHIPS ── */
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:4px}
+.chip{
+  background:#F4F4F8;border:2px solid var(--border);border-radius:50px;
+  padding:7px 13px;font-size:0.78rem;font-weight:700;color:var(--text-muted);cursor:pointer;
+  transition:all 0.15s;white-space:nowrap;
+}
+.chip:active,.chip.active{background:var(--primary-light);border-color:var(--primary);color:var(--primary)}
+
+/* ── DIVIDER ── */
+.divider{display:flex;align-items:center;gap:10px;margin:18px 0}
+.div-line{flex:1;height:1.5px;background:var(--border)}
+.div-text{font-size:0.65rem;font-weight:800;color:#CCC;letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap}
+
+/* ── QUESTION DISPLAY ── */
+.q-box{background:var(--secondary-light);border-radius:var(--radius-md);padding:15px 17px;margin-bottom:16px}
+.q-meta{font-size:0.67rem;font-weight:800;text-transform:uppercase;letter-spacing:1.8px;color:var(--secondary);margin-bottom:6px}
+.q-row{display:flex;align-items:flex-start;gap:10px}
+.q-text{flex:1;font-size:1.4rem;font-weight:900;color:var(--text);line-height:1.3}
+
+/* ── OPTION CARDS ── */
+.tap-label{font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:1.8px;color:var(--text-muted);margin-bottom:12px}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:11px;margin-bottom:16px}
+.cards-grid.big-mode{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+.opt-card{
+  background:#FAFAFA;border:2.5px solid var(--border);border-radius:var(--radius-md);
+  padding:16px 8px 13px;display:flex;flex-direction:column;align-items:center;
+  gap:8px;cursor:pointer;user-select:none;position:relative;transition:all 0.15s;
+}
+.opt-card:active,.opt-card.selected{background:var(--primary-light);border-color:var(--primary);transform:scale(0.97)}
+.opt-card .check{position:absolute;top:6px;right:8px;font-size:0.85rem;font-weight:900;color:var(--primary)}
+.opt-emoji{font-size:2.8rem;line-height:1}
+.cards-grid.big-mode .opt-emoji{font-size:3.8rem}
+.opt-photo{width:64px;height:64px;border-radius:10px;object-fit:cover}
+.cards-grid.big-mode .opt-photo{width:90px;height:90px;border-radius:12px}
+.opt-label{font-size:0.88rem;font-weight:800;color:var(--text);text-align:center;line-height:1.2}
+.cards-grid.big-mode .opt-label{font-size:1.05rem}
+
+/* ── ANSWER BANNER ── */
+.answer-banner{
+  display:flex;background:linear-gradient(135deg,#2D7FF9,#FF9055);
+  border-radius:var(--radius-md);padding:15px 16px;align-items:center;
+  gap:12px;margin-bottom:4px;box-shadow:0 6px 20px rgba(45,127,249,0.25);
+}
+.ans-emoji{font-size:2.5rem;flex-shrink:0}
+.ans-photo{width:56px;height:56px;border-radius:10px;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,255,255,0.4)}
+.ans-wrap{flex:1;min-width:0}
+.ans-said{font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.75)}
+.ans-choice{font-size:1.4rem;font-weight:900;color:#fff;line-height:1.2}
+.ans-btns{display:flex;gap:7px;flex-shrink:0}
+.w-btn{
+  background:rgba(255,255,255,0.22);border:2px solid rgba(255,255,255,0.35);
+  border-radius:10px;color:#fff;font-family:inherit;font-weight:800;font-size:0.82rem;
+  padding:8px 11px;cursor:pointer;white-space:nowrap;transition:background 0.15s;
+}
+.w-btn:active{background:rgba(255,255,255,0.35)}
+
+/* ── ERROR ── */
+.error-box{background:#FFF0F0;border:2px solid #FFBCBC;border-radius:var(--radius-sm);padding:11px 14px;color:#C0392B;font-weight:700;font-size:0.88rem;margin-top:12px}
+
+/* ── TOGGLE ROW ── */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-info{flex:1}
+.toggle-label{font-size:0.92rem;font-weight:800;color:var(--text)}
+.toggle-desc{font-size:0.75rem;color:var(--text-muted);font-weight:600;margin-top:2px}
+.toggle{position:relative;width:46px;height:26px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{
+  position:absolute;inset:0;background:#DDD;border-radius:50px;cursor:pointer;
+  transition:background 0.2s;
+}
+.toggle-slider:before{
+  content:'';position:absolute;height:20px;width:20px;left:3px;bottom:3px;
+  background:#fff;border-radius:50%;transition:transform 0.2s;
+  box-shadow:0 1px 4px rgba(0,0,0,0.2);
+}
+.toggle input:checked + .toggle-slider{background:var(--primary)}
+.toggle input:checked + .toggle-slider:before{transform:translateX(20px)}
+
+/* ── SAVED SETS ── */
+.saved-set{
+  background:var(--card);border:2px solid var(--border);border-radius:var(--radius-md);
+  padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:all 0.15s;
+}
+.saved-set:active{border-color:var(--primary);background:var(--primary-light)}
+.saved-set-title{font-size:0.95rem;font-weight:800;color:var(--text);margin-bottom:3px}
+.saved-set-preview{font-size:0.78rem;color:var(--text-muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.saved-set-actions{display:flex;gap:8px;margin-top:10px}
+.del-btn{background:#FFF0F0;border:1.5px solid #FFBCBC;border-radius:8px;color:#C0392B;font-weight:700;font-size:0.78rem;padding:5px 10px;cursor:pointer}
+
+/* ── HISTORY ── */
+.history-item{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-md);padding:13px 15px;margin-bottom:9px}
+.history-q{font-size:0.8rem;font-weight:700;color:var(--text-muted);margin-bottom:4px}
+.history-ans{font-size:1.05rem;font-weight:900;color:var(--text);display:flex;align-items:center;gap:7px}
+.history-time{font-size:0.7rem;color:var(--text-muted);font-weight:600;margin-top:4px}
+.clear-history{background:none;border:1.5px solid var(--border);border-radius:8px;color:var(--text-muted);font-weight:700;font-size:0.78rem;padding:6px 12px;cursor:pointer;margin-bottom:14px}
+
+/* ── PHOTO UPLOAD ── */
+.photo-upload-area{
+  border:2.5px dashed var(--border);border-radius:var(--radius-md);padding:20px;
+  text-align:center;cursor:pointer;transition:all 0.15s;background:#FAFAFA;
+  margin-bottom:10px;
+}
+.photo-upload-area:active{border-color:var(--primary);background:var(--primary-light)}
+.photo-upload-icon{font-size:2rem;margin-bottom:6px}
+.photo-upload-text{font-size:0.85rem;font-weight:700;color:var(--text-muted)}
+.photo-preview-grid{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.photo-preview-item{position:relative;width:72px;height:72px}
+.photo-preview-item img{width:72px;height:72px;border-radius:10px;object-fit:cover;border:2px solid var(--border)}
+.photo-preview-item .remove-photo{
+  position:absolute;top:-6px;right:-6px;width:20px;height:20px;
+  background:#FF4444;border:2px solid #fff;border-radius:50%;
+  color:#fff;font-size:0.7rem;font-weight:900;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;line-height:1;
+}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.overlay.visible{display:flex}
+.modal{background:#fff;border-radius:20px;padding:24px;width:100%;max-width:380px;box-shadow:var(--shadow-lg)}
+.modal-title{font-size:1.05rem;font-weight:900;color:var(--text);margin-bottom:6px}
+.modal-sub{font-size:0.82rem;color:var(--text-muted);font-weight:600;margin-bottom:16px;line-height:1.5}
+.steps{display:flex;flex-direction:column;gap:12px;margin-bottom:18px}
+.step-row{display:flex;gap:12px;align-items:flex-start}
+.step-num{width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;font-weight:900;font-size:0.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-text{font-size:0.86rem;font-weight:700;color:var(--text);line-height:1.45}
+.step-text b{color:var(--primary)}
+.modal-div{height:1.5px;background:var(--border);margin:14px 0}
+.modal-note{font-size:0.79rem;color:var(--text-muted);font-weight:600;line-height:1.5;margin-bottom:12px}
+
+/* ── EMPTY STATES ── */
+.empty{text-align:center;padding:40px 20px;color:var(--text-muted)}
+.empty-icon{font-size:3rem;margin-bottom:10px}
+.empty-text{font-size:0.95rem;font-weight:700}
+.empty-sub{font-size:0.82rem;font-weight:600;margin-top:4px}
+
+/* ── MISC ── */
+.row{display:flex;align-items:center;gap:8px}
+.gap-top{margin-top:14px}
+.mb8{margin-bottom:8px}
+.mb14{margin-bottom:14px}
+.badge{background:var(--primary-light);color:var(--primary);font-size:0.68rem;font-weight:800;padding:3px 8px;border-radius:50px;letter-spacing:0.5px;text-transform:uppercase}
+
+@media(max-width:400px){
+  .cards-grid{grid-template-columns:repeat(2,1fr)}
+  .cards-grid.big-mode{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- Mic Help Modal -->
+<div class="overlay" id="micModal">
+  <div class="modal">
+    <div class="modal-title">🎤 Enable Microphone</div>
+    <div class="modal-sub">Mic is blocked. Follow these steps:</div>
+    <div class="steps">
+      <div class="step-row"><div class="step-num">1</div><div class="step-text">Tap the <b>Share / ⋯ button</b> in Safari</div></div>
+      <div class="step-row"><div class="step-num">2</div><div class="step-text">Tap <b>"Open in New Tab"</b></div></div>
+      <div class="step-row"><div class="step-num">3</div><div class="step-text">Tap 🎤 again and tap <b>Allow</b></div></div>
+    </div>
+    <div class="modal-div"></div>
+    <div class="modal-note"><b style="color:var(--text)">Still blocked?</b> Go to Settings → Safari → Microphone → Allow</div>
+    <div class="modal-note"><b style="color:var(--text)">Prefer to type?</b> Everything works without the mic too.</div>
+    <button class="btn-primary" onclick="closeModal('micModal')">Got it ✓</button>
+  </div>
+</div>
+
+<!-- Save Set Modal -->
+<div class="overlay" id="saveModal">
+  <div class="modal">
+    <div class="modal-title">💾 Save this Question Set</div>
+    <div class="modal-sub">Give it a name so you can find it quickly.</div>
+    <input class="text-input" id="saveNameInput" placeholder="e.g. Dinner choices, Feelings..." style="width:100%;margin-bottom:14px">
+    <div class="row">
+      <button class="btn-secondary" style="flex:1" onclick="closeModal('saveModal')">Cancel</button>
+      <button class="btn-primary" style="flex:2;margin-left:8px" onclick="confirmSave()">Save Set</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── PAGE: ASK ── -->
+<div class="page active" id="page-ask">
+  <div class="page-header">
+    <div class="logo">Oi<span>GO</span></div>
+    <div class="tagline">Visual AAC communication for children — tap a picture, hear a voice</div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">📢 The question to show</div>
+    <div class="input-row">
+      <input class="text-input" id="questionInput" placeholder="What would you like to eat?" maxlength="200">
+      <button class="mic-btn" id="micQBtn">🎤</button>
+    </div>
+    <div class="mic-status" id="micQStatus">Tap 🎤 to speak your question</div>
+
+    <div class="section-title teal">✏️ Answer options (commas or speak)</div>
+    <div class="input-row">
+      <input class="text-input" id="optionsInput" placeholder="chicken, steak, fish, pizza..." maxlength="400">
+      <button class="mic-btn" id="micOBtn">🎤</button>
+    </div>
+    <div class="mic-status" id="micOStatus">Say: chicken, fish, pizza…</div>
+
+    <!-- Photo upload -->
+    <div class="section-title gray mb8">📷 Add photos (optional — replaces emoji)</div>
+    <div class="photo-upload-area" id="photoUploadArea">
+      <div class="photo-upload-icon">📷</div>
+      <div class="photo-upload-text">Tap to add photos for options</div>
+      <input type="file" id="photoFileInput" accept="image/*" multiple style="display:none">
+    </div>
+    <div class="photo-preview-grid" id="photoPreviewGrid"></div>
+    <div class="input-hint">Photos are matched to options in order. Extra options get emoji.</div>
+
+    <button class="btn-primary" id="goBtn">🎨 Show Visual Cards</button>
+    <div id="errorBox" style="display:none" class="error-box"></div>
+
+    <div class="divider"><div class="div-line"></div><div class="div-text">or try a quick set</div><div class="div-line"></div></div>
+
+    <div class="section-title gray mb8">Quick sets</div>
+    <div class="chips" id="quickChips">
+      <div class="chip" data-q="What would you like to eat?" data-o="chicken, steak, fish, pizza, pasta, salad">🍽️ Foods</div>
+      <div class="chip" data-q="What would you like to drink?" data-o="water, juice, milk, soda, hot chocolate">🥤 Drinks</div>
+      <div class="chip" data-q="What would you like to do?" data-o="watch TV, play outside, draw, read, video game, music">🎮 Activities</div>
+      <div class="chip" data-q="How are you feeling?" data-o="happy, sad, angry, tired, hungry, sick, excited">😊 Feelings</div>
+      <div class="chip" data-q="Where would you like to go?" data-o="park, store, home, school, restaurant, library">📍 Places</div>
+      <div class="chip" data-q="What do you want to wear?" data-o="t-shirt, sweater, shorts, jeans, pajamas">👕 Clothes</div>
+      <div class="chip" data-q="What do you need right now?" data-o="bathroom, water, hug, quiet, snack, help, break">🆘 Needs</div>
+      <div class="chip" data-q="What would you like for a snack?" data-o="apple, crackers, chips, cookies, grapes, yogurt">🍎 Snacks</div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="resultsArea" style="display:none">
+    <div class="q-box" id="qBox">
+      <div class="q-meta">Question</div>
+      <div class="q-row">
+        <div class="q-text" id="qText"></div>
+        <button class="speak-btn" id="speakQBtn">🔊 <span>Speak</span></button>
+      </div>
+    </div>
+
+    <div class="row mb8" style="justify-content:space-between;align-items:center">
+      <div class="tap-label" style="margin-bottom:0">👆 Tap your answer</div>
+      <div class="row" style="gap:8px">
+        <span id="bigModeLabel" style="font-size:0.72rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px">Big</span>
+        <label class="toggle"><input type="checkbox" id="bigModeToggle"><span class="toggle-slider"></span></label>
+        <button class="btn-secondary" id="saveSetBtn" style="padding:7px 12px;font-size:0.78rem">💾 Save</button>
+      </div>
+    </div>
+
+    <div class="cards-grid" id="cardsGrid"></div>
+
+    <div class="answer-banner" id="answerBanner" style="display:none">
+      <div id="ansVisual"></div>
+      <div class="ans-wrap">
+        <div class="ans-said">I want…</div>
+        <div class="ans-choice" id="ansChoice"></div>
+      </div>
+      <div class="ans-btns">
+        <button class="w-btn" id="speakAnsBtn">🔊</button>
+        <button class="w-btn" onclick="resetAll()">New ↺</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── PAGE: SAVED ── -->
+<div class="page" id="page-saved">
+  <div class="page-header">
+    <div class="logo" style="font-size:1.5rem">Saved Sets</div>
+    <div class="tagline">Your custom question sets</div>
+  </div>
+  <div id="savedList"></div>
+</div>
+
+<!-- ── PAGE: HISTORY ── -->
+<div class="page" id="page-history">
+  <div class="page-header">
+    <div class="logo" style="font-size:1.5rem">Response Log</div>
+    <div class="tagline">Track answers for therapy notes</div>
+  </div>
+  <div id="historyControls" style="display:none">
+    <button class="clear-history" onclick="clearHistory()">🗑 Clear all history</button>
+  </div>
+  <div id="historyList"></div>
+</div>
+
+<!-- ── PAGE: SETTINGS ── -->
+<div class="page" id="page-settings">
+  <div class="page-header">
+    <div class="logo" style="font-size:1.5rem">Settings</div>
+    <div class="tagline">Customize your experience</div>
+  </div>
+
+  <div class="card">
+    <div class="section-title gray mb8">Display</div>
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <div class="toggle-label">Big Card Mode (default)</div>
+        <div class="toggle-desc">Always show large icons and text</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="settingBigMode" onchange="saveSetting('bigMode',this.checked)"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <div class="toggle-label">Auto-Speak Question</div>
+        <div class="toggle-desc">Read question aloud when cards appear</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="settingAutoSpeak" checked onchange="saveSetting('autoSpeak',this.checked)"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <div class="toggle-label">Auto-Speak Answer</div>
+        <div class="toggle-desc">Read answer aloud when card is tapped</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="settingAutoSpeakAns" checked onchange="saveSetting('autoSpeakAns',this.checked)"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <div class="toggle-label">Save Response History</div>
+        <div class="toggle-desc">Log answers for therapy review</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="settingHistory" checked onchange="saveSetting('saveHistory',this.checked)"><span class="toggle-slider"></span></label>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title gray mb8">Install as App</div>
+    <p style="font-size:0.85rem;font-weight:600;color:var(--text-muted);line-height:1.6;margin-bottom:12px">
+      To install on your iPhone home screen:
+    </p>
+    <div class="steps">
+      <div class="step-row"><div class="step-num">1</div><div class="step-text">Open this page in <b>Safari</b></div></div>
+      <div class="step-row"><div class="step-num">2</div><div class="step-text">Tap the <b>Share button</b> (box with arrow)</div></div>
+      <div class="step-row"><div class="step-num">3</div><div class="step-text">Tap <b>"Add to Home Screen"</b></div></div>
+      <div class="step-row"><div class="step-num">4</div><div class="step-text">Tap <b>Add</b> — it opens like a real app!</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title gray mb8">About</div>
+    <p style="font-size:0.84rem;font-weight:600;color:var(--text-muted);line-height:1.6">
+      <b style="color:var(--text)">OiGO</b> — Built for children with autism who understand visually better than verbally.<br><br>
+      All data stays on your device. No account needed. Works offline.
+    </p>
+  </div>
+</div>
+
+<!-- ── BOTTOM NAV ── -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="showPage('ask',this)">
+    <span class="nav-icon">🎯</span>Ask
+  </button>
+  <button class="nav-btn" onclick="showPage('saved',this)">
+    <span class="nav-icon">💾</span>Saved
+  </button>
+  <button class="nav-btn" onclick="showPage('history',this)">
+    <span class="nav-icon">📋</span>Log
+  </button>
+  <button class="nav-btn" onclick="showPage('settings',this)">
+    <span class="nav-icon">⚙️</span>Settings
+  </button>
+</nav>
+
+<script>
+// ── EMOJI MAP ──────────────────────────────────────────────────────────────────
+var EMOJI_MAP={
+  // ── COLORS (exact match first — prevents "orange" hitting fruit) ──
+  red:"🔴",blue:"🔵",green:"🟢",yellow:"🟡",purple:"🟣",pink:"🩷",
+  black:"⚫",white:"⚪",brown:"🟤",gray:"🩶",grey:"🩶","orange color":"🟠",
+  // ── FOODS ──
+  chicken:"🍗",steak:"🥩",fish:"🐟",pizza:"🍕",pasta:"🍝",salad:"🥗",
+  burger:"🍔",hotdog:"🌭","hot dog":"🌭",taco:"🌮",burrito:"🌯",sushi:"🍣",sandwich:"🥪",
+  soup:"🍜",rice:"🍚",bread:"🍞",egg:"🥚",eggs:"🥚",noodles:"🍜",
+  shrimp:"🍤",turkey:"🦃",bacon:"🥓",ham:"🍖",meat:"🥩",fries:"🍟",
+  "french fries":"🍟",waffle:"🧇",pancake:"🥞",pancakes:"🥞",cereal:"🥣",
+  oatmeal:"🥣",toast:"🍞",bagel:"🥯","mac and cheese":"🧀",cheese:"🧀",
+  "peanut butter":"🥜",
+  // ── FRUITS ──
+  apple:"🍎",banana:"🍌",grapes:"🍇",orange:"🍊",strawberry:"🍓",
+  watermelon:"🍉",mango:"🥭",pineapple:"🍍",cherry:"🍒",peach:"🍑",
+  pear:"🍐",lemon:"🍋",blueberry:"🫐",blueberries:"🫐",
+  // ── VEGETABLES ──
+  carrot:"🥕",broccoli:"🥦",corn:"🌽",potato:"🥔",tomato:"🍅",
+  avocado:"🥑",cucumber:"🥒",pepper:"🫑",lettuce:"🥬",
+  // ── SNACKS & SWEETS ──
+  crackers:"🥨",chips:"🍟",cookies:"🍪",cookie:"🍪",cake:"🎂",cupcake:"🧁",
+  candy:"🍬",chocolate:"🍫",icecream:"🍦","ice cream":"🍦",donut:"🍩",
+  yogurt:"🍦",popcorn:"🍿",nuts:"🥜",
+  // ── DRINKS ──
+  water:"💧",juice:"🧃",milk:"🥛",soda:"🥤",tea:"🍵",coffee:"☕",
+  "hot chocolate":"🍫",cocoa:"🍫",lemonade:"🍋",smoothie:"🥤",
+  // ── ACTIVITIES ──
+  "watch tv":"📺",tv:"📺",television:"📺","video game":"🎮",videogame:"🎮",
+  game:"🎮",games:"🎮","play outside":"🌳",outside:"🌳",
+  run:"🏃",running:"🏃",swim:"🏊",swimming:"🏊",bike:"🚲",
+  draw:"🎨",drawing:"🎨",paint:"🎨",painting:"🎨",read:"📚",reading:"📚",book:"📖",
+  music:"🎵",sing:"🎤",dance:"💃",sleep:"😴",nap:"😴",
+  play:"🧸",toys:"🧸",lego:"🧱",puzzle:"🧩",craft:"✂️",crafts:"✂️",
+  soccer:"⚽",basketball:"🏀",baseball:"⚾",football:"🏈",tennis:"🎾",
+  hiking:"🥾",hike:"🥾",jump:"🤸",jumping:"🤸",
+  // ── FEELINGS ──
+  happy:"😊",sad:"😢",angry:"😠",mad:"😠",tired:"😴",sleepy:"😴",
+  hungry:"🍽️",thirsty:"💧",sick:"🤒",excited:"🤩",scared:"😨",
+  nervous:"😰",calm:"😌",bored:"😑",frustrated:"😤",surprised:"😲",
+  confused:"🤔",silly:"🤪",worried:"😟",lonely:"😔",proud:"😊",
+  // ── PLACES ──
+  park:"🌳",store:"🛒",home:"🏠",school:"🏫",restaurant:"🍽️",
+  library:"📚",beach:"🏖️",pool:"🏊",playground:"🛝",hospital:"🏥",
+  mall:"🏬",movies:"🎬",gym:"🏋️",church:"⛪",
+  // ── CLOTHES ──
+  shirt:"👕","t-shirt":"👕",tshirt:"👕",sweater:"🧥",hoodie:"🧥",jacket:"🧥",
+  shorts:"🩳",jeans:"👖",pants:"👖",dress:"👗",pajamas:"🩳",
+  socks:"🧦",shoes:"👟",sneakers:"👟",hat:"🧢",coat:"🧥",
+  // ── NEEDS / BODY / HEALTH ──
+  bathroom:"🚽",toilet:"🚽",potty:"🚽",hug:"🤗",quiet:"🤫",
+  snack:"🍎",help:"🆘",break:"⏸️",medicine:"💊",blanket:"🛏️",
+  head:"🤕",stomach:"🤢",tummy:"🤢",hand:"🖐️",hands:"🙌",
+  foot:"🦶",feet:"🦶",arm:"💪",ear:"👂",hurt:"🤕",pain:"🤕",owie:"🤕",
+  bath:"🛁",shower:"🚿",bed:"🛏️",toothbrush:"🪥",
+  // ── SCHOOL SUBJECTS ──
+  math:"➕",writing:"✏️",art:"🎨",science:"🔬",computer:"💻",
+  recess:"🛝",homework:"📝",spelling:"📖",lunch:"🍱",
+  // ── WEATHER ──
+  rain:"🌧️",rainy:"🌧️",snow:"❄️",snowy:"❄️",sunny:"☀️",cloudy:"☁️",
+  windy:"💨",storm:"⛈️",thunder:"⛈️",fog:"🌫️",hot:"🌡️",cold:"🥶",
+  // ── PEOPLE ──
+  mom:"👩",mama:"👩",mommy:"👩",dad:"👨",daddy:"👨",
+  sister:"👧",brother:"👦",friend:"🧑",teacher:"👩‍🏫",doctor:"👨‍⚕️",
+  grandma:"👵",grandpa:"👴",baby:"👶",
+  // ── ANIMALS ──
+  dog:"🐶",cat:"🐱",bird:"🐦",rabbit:"🐰",hamster:"🐹",
+  turtle:"🐢",horse:"🐴",cow:"🐮",pig:"🐷",duck:"🦆",
+  bear:"🐻",lion:"🦁",elephant:"🐘",monkey:"🐒",fish:"🐠",
+  // ── BASICS / AAC CORE WORDS ──
+  yes:"✅",no:"❌",maybe:"🤔",ok:"👍",stop:"✋",go:"🚦",
+  more:"➕",done:"✅","all done":"✅",finished:"✅",wait:"⏳",
+  good:"👍",bad:"👎",love:"❤️",star:"⭐",sun:"☀️",moon:"🌙",
+  please:"🙏","thank you":"😊",sorry:"😔",
+  fast:"💨",slow:"🐢",big:"⬆️",little:"⬇️",loud:"🔊",soft:"🤫",
+  inside:"🏠",
+};
+
+// ── COLORS that share names with other categories need special handling ──────
+var COLOR_WORDS = {
+  red:"🔴",blue:"🔵",green:"🟢",yellow:"🟡",purple:"🟣",pink:"🩷",
+  black:"⚫",white:"⚪",brown:"🟤",gray:"🩶",grey:"🩶",orange:"🟠",
+  teal:"🩵",cyan:"🩵",lavender:"🟣",maroon:"🔴",navy:"🔵",lime:"🟢"
+};
+
+function getEmoji(w){
+  var k=w.toLowerCase().trim();
+
+  // 1. Check color map FIRST with exact match — fixes "orange", "red" etc
+  if(COLOR_WORDS[k]) return COLOR_WORDS[k];
+
+  // 2. Exact match in main map
+  if(EMOJI_MAP[k]) return EMOJI_MAP[k];
+
+  // 3. Exact substring match — prefer longer keys to avoid "red" in "shredded"
+  var keys=Object.keys(EMOJI_MAP);
+  var bestMatch=null,bestLen=0;
+  for(var i=0;i<keys.length;i++){
+    var key=keys[i];
+    if(key===k) return EMOJI_MAP[key];
+    if(k.indexOf(key)!==-1||key.indexOf(k)!==-1){
+      if(key.length>bestLen){bestLen=key.length;bestMatch=key;}
+    }
+  }
+  if(bestMatch) return EMOJI_MAP[bestMatch];
+
+  // 4. Fallback colored squares
+  var fb=["🔵","🟢","🟡","🟠","🔴","🟣","⚪","🟤","🔶","🔷"];
+  return fb[k.charCodeAt(0)%fb.length];
+}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+
+// ── SETTINGS ──────────────────────────────────────────────────────────────────
+var settings={bigMode:false,autoSpeak:true,autoSpeakAns:true,saveHistory:true};
+function loadSettings(){
+  try{var s=localStorage.getItem('qv_settings');if(s)settings=Object.assign(settings,JSON.parse(s));}catch(e){}
+  document.getElementById('settingBigMode').checked=settings.bigMode;
+  document.getElementById('settingAutoSpeak').checked=settings.autoSpeak;
+  document.getElementById('settingAutoSpeakAns').checked=settings.autoSpeakAns;
+  document.getElementById('settingHistory').checked=settings.saveHistory;
+  if(settings.bigMode)document.getElementById('bigModeToggle').checked=true;
+}
+function saveSetting(k,v){settings[k]=v;try{localStorage.setItem('qv_settings',JSON.stringify(settings));}catch(e){}}
+
+// ── TTS ───────────────────────────────────────────────────────────────────────
+function speak(text,btnId){
+  if(!window.speechSynthesis)return;
+  window.speechSynthesis.cancel();
+  var u=new SpeechSynthesisUtterance(text);
+  u.rate=0.88;u.pitch=1.05;u.volume=1;
+  var voices=window.speechSynthesis.getVoices();
+  var v=null;
+  for(var i=0;i<voices.length;i++){if(/en[-_]US/i.test(voices[i].lang)){v=voices[i];break;}}
+  if(!v){for(var i=0;i<voices.length;i++){if(/en/i.test(voices[i].lang)){v=voices[i];break;}}}
+  if(v)u.voice=v;
+  if(btnId){
+    var btn=document.getElementById(btnId);
+    if(btn){btn.textContent='🔊…';u.onend=function(){btn.textContent='🔊'};u.onerror=function(){btn.textContent='🔊'};}
+  }
+  window.speechSynthesis.speak(u);
+}
+if(window.speechSynthesis){window.speechSynthesis.getVoices();window.speechSynthesis.onvoiceschanged=function(){window.speechSynthesis.getVoices();};}
+
+// ── SPEECH RECOGNITION ────────────────────────────────────────────────────────
+var SR=window.SpeechRecognition||window.webkitSpeechRecognition||null;
+var activeRec=null;
+if(!SR){
+  document.getElementById('micQBtn').style.display='none';
+  document.getElementById('micOBtn').style.display='none';
+  document.getElementById('micQStatus').style.display='none';
+  document.getElementById('micOStatus').style.display='none';
+}
+
+function startMic(field){
+  if(!SR)return;
+  var isQ=field==='q';
+  var inputId=isQ?'questionInput':'optionsInput';
+  var btnId=isQ?'micQBtn':'micOBtn';
+  var statusId=isQ?'micQStatus':'micOStatus';
+  var btn=document.getElementById(btnId);
+  var status=document.getElementById(statusId);
+  var input=document.getElementById(inputId);
+
+  if(btn.classList.contains('recording')){
+    if(activeRec){activeRec.stop();activeRec=null;}
+    btn.classList.remove('recording');
+    status.textContent=isQ?'Tap 🎤 to speak your question':'Say: chicken, fish, pizza…';
+    status.className='mic-status';
+    return;
+  }
+  if(activeRec){activeRec.stop();activeRec=null;}
+  document.querySelectorAll('.mic-btn').forEach(function(b){b.classList.remove('recording');});
+
+  var rec=new SR();
+  rec.lang='en-US';rec.interimResults=true;rec.continuous=false;rec.maxAlternatives=1;
+  activeRec=rec;
+  btn.classList.add('recording');
+  status.textContent='🔴 Listening…';status.className='mic-status live';
+
+  rec.onresult=function(e){
+    var t='';for(var i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;
+    input.value=t;status.textContent='🔴 '+t;
+  };
+  rec.onend=function(){
+    activeRec=null;btn.classList.remove('recording');
+    var final=input.value.trim();
+    if(final){status.textContent='✅ Got it!';status.className='mic-status live';
+      setTimeout(function(){status.textContent=isQ?'Tap 🎤 to speak your question':'Say: chicken, fish, pizza…';status.className='mic-status';},2200);
+    }else{status.textContent='Nothing heard — tap 🎤 to retry';status.className='mic-status';}
+  };
+  rec.onerror=function(e){
+    activeRec=null;btn.classList.remove('recording');
+    if(e.error==='not-allowed'){openModal('micModal');status.textContent='Mic blocked — see popup';}
+    else if(e.error==='no-speech'){status.textContent='Nothing heard — tap 🎤 to retry';}
+    else{status.textContent='Error — tap 🎤 to retry';}
+    status.className='mic-status';
+  };
+  try{rec.start();}catch(e){btn.classList.remove('recording');status.textContent='Could not start mic';}
+}
+
+// ── PHOTOS ────────────────────────────────────────────────────────────────────
+var uploadedPhotos=[];// array of data URLs
+
+document.getElementById('photoUploadArea').addEventListener('click',function(){
+  document.getElementById('photoFileInput').click();
+});
+document.getElementById('photoFileInput').addEventListener('change',function(e){
+  var files=Array.from(e.target.files);
+  files.forEach(function(file){
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      uploadedPhotos.push(ev.target.result);
+      renderPhotoPreviews();
+    };
+    reader.readAsDataURL(file);
+  });
+  this.value='';
+});
+
+function renderPhotoPreviews(){
+  var grid=document.getElementById('photoPreviewGrid');
+  grid.innerHTML='';
+  uploadedPhotos.forEach(function(src,i){
+    var item=document.createElement('div');item.className='photo-preview-item';
+    var img=document.createElement('img');img.src=src;
+    var rm=document.createElement('div');rm.className='remove-photo';rm.textContent='×';
+    rm.addEventListener('click',function(){uploadedPhotos.splice(i,1);renderPhotoPreviews();});
+    item.appendChild(img);item.appendChild(rm);grid.appendChild(item);
+  });
+}
+
+// ── BUILD CARDS ───────────────────────────────────────────────────────────────
+var currentCards=[];
+var currentQuestion='';
+
+function buildCards(q,o,photos){
+  var question=q||document.getElementById('questionInput').value.trim();
+  var optionsRaw=o||document.getElementById('optionsInput').value.trim();
+  var photos=photos||uploadedPhotos;
+  var errBox=document.getElementById('errorBox');
+  errBox.style.display='none';
+
+  if(!question){errBox.textContent='⚠️ Please enter a question first.';errBox.style.display='block';return;}
+  if(!optionsRaw){errBox.textContent='⚠️ Please enter answer options separated by commas.';errBox.style.display='block';return;}
+  var items=optionsRaw.split(',').map(function(s){return s.trim();}).filter(function(s){return s.length>0;});
+  if(items.length<2){errBox.textContent='⚠️ Please enter at least 2 options. Example: chicken, pizza, fish';errBox.style.display='block';return;}
+
+  currentQuestion=question;
+  currentCards=items.map(function(item,i){
+    return{label:cap(item),emoji:getEmoji(item),photo:photos[i]||null};
+  });
+
+  document.getElementById('qText').textContent=question;
+  document.getElementById('answerBanner').style.display='none';
+  document.getElementById('resultsArea').style.display='block';
+
+  renderCards();
+
+  if(settings.autoSpeak)speak(question,'speakQBtn');
+  setTimeout(function(){document.getElementById('resultsArea').scrollIntoView({behavior:'smooth',block:'start'});},100);
+}
+
+function renderCards(){
+  var grid=document.getElementById('cardsGrid');
+  var bigMode=document.getElementById('bigModeToggle').checked;
+  grid.className='cards-grid'+(bigMode?' big-mode':'');
+  grid.innerHTML='';
+
+  currentCards.forEach(function(c,i){
+    var card=document.createElement('div');card.className='opt-card';
+    if(c.photo){
+      var img=document.createElement('img');img.src=c.photo;img.className='opt-photo';img.alt=c.label;card.appendChild(img);
+    }else{
+      var em=document.createElement('div');em.className='opt-emoji';em.textContent=c.emoji;card.appendChild(em);
+    }
+    var lbl=document.createElement('div');lbl.className='opt-label';lbl.textContent=c.label;card.appendChild(lbl);
+    card.addEventListener('click',function(){selectCard(i);});
+    grid.appendChild(card);
+  });
+}
+
+function selectCard(i){
+  var c=currentCards[i];
+  document.querySelectorAll('.opt-card').forEach(function(el){el.classList.remove('selected');});
+  document.querySelectorAll('.opt-card')[i].classList.add('selected');
+
+  var banner=document.getElementById('answerBanner');
+  var visual=document.getElementById('ansVisual');
+  if(c.photo){
+    visual.innerHTML='<img src="'+c.photo+'" class="ans-photo" alt="'+c.label+'">';
+  }else{
+    visual.innerHTML='<div class="ans-emoji">'+c.emoji+'</div>';
+  }
+  document.getElementById('ansChoice').textContent=c.label;
+  banner.style.display='flex';
+  setTimeout(function(){banner.scrollIntoView({behavior:'smooth',block:'nearest'});},60);
+
+  if(settings.autoSpeakAns)speak('I want '+c.label,'speakAnsBtn');
+
+  if(settings.saveHistory)saveHistory(currentQuestion,c);
+}
+
+function resetAll(){
+  if(window.speechSynthesis)window.speechSynthesis.cancel();
+  document.getElementById('questionInput').value='';
+  document.getElementById('optionsInput').value='';
+  uploadedPhotos=[];renderPhotoPreviews();
+  document.getElementById('resultsArea').style.display='none';
+  document.getElementById('errorBox').style.display='none';
+  document.getElementById('micQStatus').textContent='Tap 🎤 to speak your question';
+  document.getElementById('micOStatus').textContent='Say: chicken, fish, pizza…';
+  window.scrollTo(0,0);
+}
+
+// ── SAVED SETS ────────────────────────────────────────────────────────────────
+var pendingSave={q:'',o:''};
+
+function openSaveModal(){
+  var q=document.getElementById('questionInput').value.trim();
+  var o=document.getElementById('optionsInput').value.trim();
+  if(!q||!o){alert('Please enter a question and options first.');return;}
+  pendingSave={q:q,o:o};
+  document.getElementById('saveNameInput').value=q.replace('?','').substring(0,40);
+  openModal('saveModal');
+}
+
+function confirmSave(){
+  var name=document.getElementById('saveNameInput').value.trim();
+  if(!name){alert('Please enter a name.');return;}
+  var sets=getSavedSets();
+  sets.push({id:Date.now(),name:name,q:pendingSave.q,o:pendingSave.o});
+  saveSets(sets);
+  closeModal('saveModal');
+  renderSavedSets();
+  showToast('✅ Saved!');
+}
+
+function getSavedSets(){try{return JSON.parse(localStorage.getItem('qv_sets')||'[]');}catch(e){return[];}}
+function saveSets(sets){try{localStorage.setItem('qv_sets',JSON.stringify(sets));}catch(e){}}
+
+function renderSavedSets(){
+  var list=document.getElementById('savedList');
+  var sets=getSavedSets();
+  if(sets.length===0){
+    list.innerHTML='<div class="empty"><div class="empty-icon">💾</div><div class="empty-text">No saved sets yet</div><div class="empty-sub">Build a question, then tap 💾 Save to store it here</div></div>';
+    return;
+  }
+  list.innerHTML='';
+  sets.forEach(function(s){
+    var el=document.createElement('div');el.className='saved-set';
+    el.innerHTML='<div class="saved-set-title">'+escHtml(s.name)+'</div><div class="saved-set-preview">'+escHtml(s.q)+'</div><div class="saved-set-preview" style="color:#22C580;margin-top:2px">'+escHtml(s.o)+'</div><div class="saved-set-actions"><button class="btn-primary" style="flex:1;padding:9px 12px;font-size:0.85rem">▶ Use</button><button class="del-btn">🗑 Delete</button></div>';
+    el.querySelector('.btn-primary').addEventListener('click',function(e){
+      e.stopPropagation();
+      document.getElementById('questionInput').value=s.q;
+      document.getElementById('optionsInput').value=s.o;
+      showPage('ask',document.querySelector('.nav-btn'));
+      document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active');});
+      document.querySelector('.nav-btn').classList.add('active');
+      setTimeout(function(){buildCards(s.q,s.o,[]);},100);
+    });
+    el.querySelector('.del-btn').addEventListener('click',function(e){
+      e.stopPropagation();
+      if(confirm('Delete "'+s.name+'"?')){
+        var sets2=getSavedSets().filter(function(x){return x.id!==s.id;});
+        saveSets(sets2);renderSavedSets();
+      }
+    });
+    list.appendChild(el);
+  });
+}
+
+// ── HISTORY ───────────────────────────────────────────────────────────────────
+function saveHistory(question,card){
+  if(!settings.saveHistory)return;
+  try{
+    var hist=JSON.parse(localStorage.getItem('qv_history')||'[]');
+    hist.unshift({q:question,label:card.label,emoji:card.photo?'📷':card.emoji,ts:Date.now()});
+    if(hist.length>200)hist=hist.slice(0,200);
+    localStorage.setItem('qv_history',JSON.stringify(hist));
+  }catch(e){}
+}
+
+function renderHistory(){
+  var list=document.getElementById('historyList');
+  var ctrl=document.getElementById('historyControls');
+  try{
+    var hist=JSON.parse(localStorage.getItem('qv_history')||'[]');
+    if(hist.length===0){
+      ctrl.style.display='none';
+      list.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No responses logged yet</div><div class="empty-sub">Tap answer cards and they\'ll appear here</div></div>';
+      return;
+    }
+    ctrl.style.display='block';
+    list.innerHTML='';
+    hist.forEach(function(h){
+      var el=document.createElement('div');el.className='history-item';
+      var d=new Date(h.ts);
+      var timeStr=d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' at '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+      el.innerHTML='<div class="history-q">'+escHtml(h.q)+'</div><div class="history-ans"><span>'+h.emoji+'</span><span>'+escHtml(h.label)+'</span></div><div class="history-time">'+timeStr+'</div>';
+      list.appendChild(el);
+    });
+  }catch(e){list.innerHTML='<div class="error-box">Could not load history.</div>';}
+}
+
+function clearHistory(){
+  if(confirm('Clear all response history?')){
+    try{localStorage.removeItem('qv_history');}catch(e){}
+    renderHistory();
+  }
+}
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+function showPage(name,clickedBtn){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('page-'+name).classList.add('active');
+  if(clickedBtn)clickedBtn.classList.add('active');
+  if(name==='saved')renderSavedSets();
+  if(name==='history')renderHistory();
+  window.scrollTo(0,0);
+}
+
+// ── MODAL HELPERS ─────────────────────────────────────────────────────────────
+function openModal(id){document.getElementById(id).classList.add('visible');}
+function closeModal(id){document.getElementById(id).classList.remove('visible');}
+document.querySelectorAll('.overlay').forEach(function(o){
+  o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('visible');});
+});
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function showToast(msg){
+  var t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1A1A2E;color:#fff;padding:10px 20px;border-radius:50px;font-weight:700;font-size:0.88rem;z-index:300;pointer-events:none;opacity:1;transition:opacity 0.4s';
+  t.textContent=msg;document.body.appendChild(t);
+  setTimeout(function(){t.style.opacity='0';setTimeout(function(){t.remove();},400);},1800);
+}
+
+// ── ESCAPE HTML ───────────────────────────────────────────────────────────────
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── WIRE UP ───────────────────────────────────────────────────────────────────
+document.getElementById('goBtn').addEventListener('click',function(){buildCards();});
+document.getElementById('micQBtn').addEventListener('click',function(){startMic('q');});
+document.getElementById('micOBtn').addEventListener('click',function(){startMic('o');});
+document.getElementById('speakQBtn').addEventListener('click',function(){speak(document.getElementById('qText').textContent,'speakQBtn');});
+document.getElementById('speakAnsBtn').addEventListener('click',function(){
+  var t=document.getElementById('ansChoice').textContent;if(t)speak('I want '+t,'speakAnsBtn');
+});
+document.getElementById('saveSetBtn').addEventListener('click',openSaveModal);
+document.getElementById('bigModeToggle').addEventListener('change',renderCards);
+document.getElementById('questionInput').addEventListener('keydown',function(e){if(e.key==='Enter')buildCards();});
+document.getElementById('optionsInput').addEventListener('keydown',function(e){if(e.key==='Enter')buildCards();});
+
+document.getElementById('quickChips').addEventListener('click',function(e){
+  var chip=e.target.closest('.chip');if(!chip)return;
+  document.getElementById('questionInput').value=chip.dataset.q;
+  document.getElementById('optionsInput').value=chip.dataset.o;
+  buildCards(chip.dataset.q,chip.dataset.o,[]);
+});
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+loadSettings();
+
+// Service Worker registration
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
