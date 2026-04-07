@@ -583,21 +583,74 @@ if(window.speechSynthesis){window.speechSynthesis.getVoices();window.speechSynth
 
 // ── PHOTO LIBRARY ────────────────────────────────────────────────────────────
 function getLibrary(){try{return JSON.parse(localStorage.getItem('oigo_library')||'[]');}catch(e){return[];}}
-function saveLibrary(lib){try{localStorage.setItem('oigo_library',JSON.stringify(lib));}catch(e){showToast('⚠️ Storage full — remove some photos');}}
 
-function addPhotosToLibrary(files,cb){
-  var lib=getLibrary();var remaining=files.length;
-  if(!remaining){if(cb)cb();return;}
-  files.forEach(function(file){
+function saveLibrary(lib){
+  try{
+    localStorage.setItem('oigo_library',JSON.stringify(lib));
+    return true;
+  }catch(e){
+    // Storage full — try removing oldest photos until it fits
+    if(lib.length>1){
+      lib.shift(); // remove oldest
+      return saveLibrary(lib);
+    }
+    showToast('⚠️ Storage full. Clear some photos in the Library tab.');
+    return false;
+  }
+}
+
+// Resize image to max dimension via canvas before storing — fixes quota errors
+function resizeImage(dataUrl, maxPx, quality, cb){
+  var img=new Image();
+  img.onload=function(){
+    var w=img.width, h=img.height;
+    if(w<=maxPx && h<=maxPx){ cb(dataUrl); return; }
+    var ratio=Math.min(maxPx/w, maxPx/h);
+    var canvas=document.createElement('canvas');
+    canvas.width=Math.round(w*ratio);
+    canvas.height=Math.round(h*ratio);
+    var ctx=canvas.getContext('2d');
+    ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    cb(canvas.toDataURL('image/jpeg', quality||0.75));
+  };
+  img.onerror=function(){ cb(dataUrl); }; // fallback: store original
+  img.src=dataUrl;
+}
+
+// FIX: sequential processing (not parallel) eliminates race condition
+// FIX: resize before storage eliminates quota errors
+// FIX: dedup by ID hash (first 100 chars) not full base64 comparison
+function addPhotosToLibrary(files, cb){
+  if(!files||!files.length){ if(cb)cb(); return; }
+  var fileArr=Array.from(files);
+  var idx=0;
+
+  function processNext(){
+    if(idx>=fileArr.length){ if(cb)cb(); return; }
+    var file=fileArr[idx++];
     var reader=new FileReader();
     reader.onload=function(ev){
-      var data=ev.target.result;
-      if(!lib.some(function(x){return x.data===data;}))
-        lib.push({id:Date.now()+Math.random(),data:data,name:file.name.replace(/\.[^.]+$/,'')});
-      if(--remaining===0){saveLibrary(lib);if(cb)cb();}
+      resizeImage(ev.target.result, 480, 0.78, function(resized){
+        var lib=getLibrary(); // re-read each time — fresh after each save
+        // Dedup by comparing only the first 120 chars of base64 (fast, reliable)
+        var sig=resized.substring(0,120);
+        var exists=lib.some(function(x){ return x.data && x.data.substring(0,120)===sig; });
+        if(!exists){
+          lib.push({
+            id: Date.now()+'-'+Math.round(Math.random()*99999),
+            data: resized,
+            name: file.name.replace(/\.[^.]+$/,'').replace(/[-_]/g,' ')
+          });
+          saveLibrary(lib);
+        }
+        processNext(); // process next file only after this one is done
+      });
     };
+    reader.onerror=function(){ processNext(); }; // skip bad file, continue
     reader.readAsDataURL(file);
-  });
+  }
+
+  processNext();
 }
 
 function renderLibraryPage(){
@@ -678,10 +731,92 @@ var activeRec=null;
 if(!SR){['micQBtn','micOBtn'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.display='none';});['micQStatus','micOStatus'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.display='none';});}
 
 // ── AUTO-COMMA: convert natural speech to comma list ─────────────────────────
+// Compound terms that contain "and" or "&" but are ONE single option
+var COMPOUND_TERMS = [
+  // Food combos
+  "peanut butter and jelly","peanut butter & jelly","pb and j","pb&j","pb & j",
+  "chicken and waffles","chicken & waffles",
+  "mac and cheese","mac & cheese","macaroni and cheese",
+  "biscuits and gravy","biscuits & gravy",
+  "bacon and eggs","bacon & eggs",
+  "ham and cheese","ham & cheese",
+  "bread and butter","bread & butter",
+  "salt and pepper","salt & pepper",
+  "fish and chips","fish & chips",
+  "cookies and cream","cookies & cream","cookies and creme","cookies & creme",
+  "strawberries and cream","strawberries & cream",
+  "peaches and cream","peaches & cream",
+  "lemon and lime","lemon & lime",
+  "surf and turf","surf & turf",
+  "steak and eggs","steak & eggs",
+  "rice and beans","rice & beans",
+  "sausage and peppers","sausage & peppers",
+  "chicken and rice","chicken & rice",
+  "turkey and cheese","turkey & cheese",
+  "ham and pineapple","ham & pineapple",
+  "tomato and basil","tomato & basil",
+  "hot and sour soup","hot & sour soup",
+  "black and white cookie","black & white cookie",
+  "meat and potatoes","meat & potatoes",
+  "franks and beans","franks & beans",
+  "oil and vinegar","oil & vinegar",
+  "cream and sugar","cream & sugar",
+  // Beverages
+  "tea and honey","tea & honey",
+  "coffee and cream","cream and coffee",
+  "rum and coke","rum & coke",
+  "gin and tonic","gin & tonic",
+  "vodka and soda","vodka & soda",
+  // Brands with & or "and"
+  "ben and jerry's","ben & jerry's",
+  "johnson and johnson","johnson & johnson",
+  "arm and hammer","arm & hammer",
+  "barnes and noble","barnes & noble",
+  "dolce and gabbana","dolce & gabbana",
+  "procter and gamble","procter & gamble",
+  // Activities / topics
+  "arts and crafts","arts & crafts",
+  "black and white","black & white",
+  "thunder and lightning","thunder & lightning",
+  "rise and shine",
+  "bread and breakfast","bed and breakfast","bed & breakfast",
+  "song and dance",
+  "law and order",
+  "night and day",
+  "back and forth",
+  "up and down",
+];
+
 function processOptions(raw){
   var s=raw.trim().replace(/[.!?]+$/,'');
-  if(s.indexOf(',')!==-1)return s.split(',').map(function(x){return x.trim();}).filter(Boolean).join(', ');
-  s=s.replace(/\b(and|or|also|then|plus)\b/gi,',').replace(/\s{2,}/g,',');
+
+  // If commas already present, respect them — just clean up spacing
+  if(s.indexOf(',')!==-1){
+    return s.split(',').map(function(x){return x.trim();}).filter(Boolean).join(', ');
+  }
+
+  // Protect compound terms by replacing spaces/& with a placeholder
+  var PLACEHOLDER='__AND__';
+  var lower=s.toLowerCase();
+  // Sort longest first so "peanut butter and jelly" matches before "butter and"
+  var sorted=COMPOUND_TERMS.slice().sort(function(a,b){return b.length-a.length;});
+  sorted.forEach(function(term){
+    var idx=lower.indexOf(term);
+    while(idx!==-1){
+      var protected_=term.replace(/\s+and\s+|\s*&\s*/gi, PLACEHOLDER);
+      s=s.substring(0,idx)+protected_+s.substring(idx+term.length);
+      lower=s.toLowerCase();
+      idx=lower.indexOf(term,idx+protected_.length);
+    }
+  });
+
+  // Now split on natural speech connectors
+  s=s.replace(/\s+and\s+|\s*,\s*and\s+|\s+or\s+|\s+also\s+|\s+then\s+|\s+plus\s+/gi,',');
+  s=s.replace(/\s*&\s*/g,',');
+
+  // Restore placeholders back to " and "
+  s=s.replace(new RegExp(PLACEHOLDER,'g'),' and ');
+
   return s.split(',').map(function(x){return x.trim();}).filter(Boolean).join(', ');
 }
 
@@ -925,27 +1060,54 @@ document.getElementById('bigModeToggle').addEventListener('change',renderCards);
 document.getElementById('questionInput').addEventListener('keydown',function(e){if(e.key==='Enter')buildCards();});
 document.getElementById('optionsInput').addEventListener('keydown',function(e){if(e.key==='Enter')buildCards();});
 
-document.getElementById('photoUploadZone').addEventListener('click',function(){document.getElementById('photoFileInput').click();});
+document.getElementById('photoUploadZone').addEventListener('click',function(e){
+  // Prevent double-trigger if click originated from the input itself
+  if(e.target.tagName==='INPUT')return;
+  document.getElementById('photoFileInput').click();
+});
 document.getElementById('photoFileInput').addEventListener('change',function(e){
   var files=Array.from(e.target.files);
-  files.forEach(function(file){
+  if(!files.length){return;}
+  var fileArr=files.slice(); // copy before resetting
+  this.value=''; // reset input immediately so same file can be re-picked
+
+  // Process files sequentially via resize pipeline — add to current question photos
+  var idx=0;
+  function addNext(){
+    if(idx>=fileArr.length){
+      // After all done, save to library too
+      addPhotosToLibrary(fileArr,function(){renderLibPicker();renderLibraryPage();});
+      return;
+    }
+    var file=fileArr[idx++];
     var reader=new FileReader();
     reader.onload=function(ev){
-      uploadedPhotos.push({data:ev.target.result,name:file.name.replace(/\.[^.]+$/,'')});
-      renderPhotoPreviews();
+      resizeImage(ev.target.result, 480, 0.78, function(resized){
+        uploadedPhotos.push({data:resized, name:file.name.replace(/\.[^.]+$/,'').replace(/[-_]/g,' ')});
+        renderPhotoPreviews();
+        addNext();
+      });
     };
+    reader.onerror=function(){addNext();};
     reader.readAsDataURL(file);
-  });
-  // Also save to library
-  addPhotosToLibrary(files,function(){renderLibPicker();renderLibraryPage();});
-  this.value='';
+  }
+  addNext();
 });
 
-document.getElementById('libUploadZone').addEventListener('click',function(){document.getElementById('libFileInput').click();});
+document.getElementById('libUploadZone').addEventListener('click',function(e){
+  if(e.target.tagName==='INPUT')return;
+  document.getElementById('libFileInput').click();
+});
 document.getElementById('libFileInput').addEventListener('change',function(e){
   var files=Array.from(e.target.files);
-  addPhotosToLibrary(files,function(){renderLibraryPage();renderLibPicker();showToast('📷 '+files.length+' photo'+(files.length!==1?'s':'')+' added');});
+  if(!files.length){return;}
+  var count=files.length;
   this.value='';
+  addPhotosToLibrary(files,function(){
+    renderLibraryPage();
+    renderLibPicker();
+    showToast('📷 '+count+' photo'+(count!==1?'s':'')+' saved to library');
+  });
 });
 
 document.getElementById('quickChips').addEventListener('click',function(e){
