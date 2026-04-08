@@ -175,29 +175,6 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 .btn-type-answer:active{background:var(--primary-light);border-color:var(--primary);color:var(--primary);}
 
 
-/* Photo library pick button on Ask tab */
-.photo-lib-btn{
-  width:80px;flex-shrink:0;border:2px dashed var(--border);border-radius:var(--radius-md);
-  background:#FAFBFF;cursor:pointer;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:4px;padding:8px 4px;position:relative;
-  font-family:inherit;color:var(--text-muted);transition:all 0.15s;-webkit-appearance:none;
-}
-.photo-lib-btn span{font-size:0.72rem;font-weight:700}
-.photo-lib-btn:active{background:var(--primary-light);border-color:var(--primary);color:var(--primary)}
-.photo-lib-btn.has-selection{border-color:var(--secondary);background:var(--secondary-light);color:var(--secondary)}
-.lib-badge{
-  position:absolute;top:-6px;right:-6px;width:18px;height:18px;
-  background:var(--primary);color:#fff;border-radius:50%;
-  font-size:0.62rem;font-weight:900;display:flex;align-items:center;justify-content:center;
-  border:2px solid #fff;
-}
-/* Modal library grid items */
-#libPickModalGrid .lib-item{min-height:80px;}
-#libPickModalGrid .lib-item.selected-lib::after{
-  content:'✓';position:absolute;top:4px;right:4px;background:var(--primary);
-  color:#fff;font-size:0.68rem;font-weight:900;width:20px;height:20px;
-  border-radius:50%;display:flex;align-items:center;justify-content:center;
-}
 
 
 /* Voice type selector */
@@ -376,23 +353,6 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 </div>
 
 
-<!-- From Library Modal -->
-<div class="overlay" id="libPickModal">
-  <div class="modal" style="max-height:85vh;display:flex;flex-direction:column">
-    <div class="modal-handle"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-      <div class="modal-title" style="margin-bottom:0">📚 Choose from Library</div>
-      <div id="libPickCount" style="font-size:0.75rem;font-weight:700;color:var(--primary)"></div>
-    </div>
-    <div class="modal-sub" style="margin-bottom:10px">Tap photos to select. Tap again to deselect.</div>
-    <div id="libPickModalGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;overflow-y:auto;flex:1;padding-bottom:4px"></div>
-    <div style="margin-top:14px;display:flex;gap:10px">
-      <button class="btn-secondary" style="flex:1" onclick="closeModal('libPickModal')">Cancel</button>
-      <button class="btn-primary" style="flex:2" onclick="confirmLibPick()">Add Selected Photos</button>
-    </div>
-  </div>
-</div>
-
 <!-- Save Set Modal -->
 <div class="overlay" id="saveModal">
   <div class="modal">
@@ -431,17 +391,11 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
     </div>
     <div class="mic-status" id="micOStatus" aria-live="polite" role="status">Say "or" between each option to add commas automatically</div>
 
-    <div style="display:flex;gap:8px;margin-bottom:8px">
-      <div class="photo-upload-zone" id="photoUploadZone" style="flex:1;margin-bottom:0">
-        <div class="puz-icon">📷</div>
-        <div class="puz-text">Camera Roll</div>
-        <input type="file" id="photoFileInput" accept="image/*" multiple style="display:none">
-      </div>
-      <button class="photo-lib-btn" id="openLibPickBtn" onclick="openLibPick()" aria-label="Choose photos from your saved library">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-        <span>Library</span>
-        <span id="libBadge" class="lib-badge" style="display:none">0</span>
-      </button>
+    <div class="photo-upload-zone" id="photoUploadZone">
+      <div class="puz-icon">📷</div>
+      <div class="puz-text">Tap to upload photos</div>
+      <div class="puz-sub">Photos attach to the current question</div>
+      <input type="file" id="photoFileInput" accept="image/*" multiple style="display:none">
     </div>
     <div class="photo-preview-grid" id="photoPreviewGrid"></div>
 
@@ -498,27 +452,7 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
   </div>
 </div>
 
-<!-- PAGE: LIBRARY -->
-<div class="page" id="page-library">
-  <div class="page-title">Photo Library</div>
-  <div class="page-sub">Save photos to reuse across any question set</div>
-  <div class="card">
-    <div class="field-label gray">Add Photos</div>
-    <div class="photo-upload-zone" id="libUploadZone">
-      <div class="puz-icon">📷</div>
-      <div class="puz-text">Tap to add photos to your library</div>
-      <div class="puz-sub">Photos stay saved — no re-uploading needed</div>
-      <input type="file" id="libFileInput" accept="image/*" multiple style="display:none">
-    </div>
-  </div>
-  <div id="libEmpty" class="empty" style="display:none">
-    <div class="empty-icon">🖼️</div>
-    <div class="empty-text">No photos yet</div>
-    <div class="empty-sub">Add photos above. They'll stay saved so you can reuse them in any question set without re-uploading.</div>
-  </div>
-  <div class="field-label gray" id="libCountLabel" style="display:none;margin-bottom:10px">Saved Photos</div>
-  <div class="lib-grid" id="libraryGrid"></div>
-</div>
+
 
 <!-- PAGE: SAVED -->
 <div class="page" id="page-saved">
@@ -556,26 +490,7 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
       <div class="toggle-info"><div class="toggle-label">Auto-Speak Answer</div><div class="toggle-desc">Read aloud on card tap</div></div>
       <label class="toggle"><input type="checkbox" id="settingAutoSpeakAns" checked onchange="saveSetting('autoSpeakAns',this.checked)" aria-label="Auto-speak answer when card is tapped"><span class="toggle-slider"></span></label>
     </div>
-    <div class="toggle-row" style="flex-direction:column;align-items:flex-start;gap:12px">
-      <div class="toggle-info">
-        <div class="toggle-label">ElevenLabs API Key</div>
-        <div class="toggle-desc">Enter your key for natural-sounding AI voices. Free at elevenlabs.io — 10,000 chars/month.</div>
-      </div>
-      <div style="width:100%;display:flex;gap:8px;align-items:center">
-        <input type="password" id="elApiKey" class="text-input" placeholder="sk-..." style="flex:1;font-size:0.85rem;padding:10px 13px" aria-label="ElevenLabs API key" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-        <button class="btn-secondary" style="white-space:nowrap;padding:10px 14px;font-size:0.8rem" onclick="saveElKey()">Save Key</button>
-      </div>
-      <div id="elKeyStatus" style="font-size:0.72rem;font-weight:700;color:var(--text-muted);min-height:14px"></div>
-      <div class="el-setup-steps" id="elSetupSteps" style="display:none">
-        <div style="font-size:0.72rem;font-weight:800;color:var(--primary);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">How to get your free API key</div>
-        <div style="font-size:0.75rem;color:var(--text-mid);font-weight:500;line-height:1.7">
-          1. Go to <b>elevenlabs.io</b> and create a free account<br>
-          2. Click your profile → <b>API Keys</b><br>
-          3. Click <b>Create API Key</b>, copy it<br>
-          4. Paste it above and tap <b>Save Key</b>
-        </div>
-      </div>
-    </div>
+
     <div class="toggle-row" style="flex-direction:column;align-items:flex-start;gap:10px">
       <div class="toggle-info">
         <div class="toggle-label">Voice</div>
@@ -610,6 +525,9 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
       Built for children with autism who process information visually.<br><br>
       All data stays on your device. No account needed. Works offline.
     </p>
+    <p style="font-size:0.72rem;font-weight:600;color:var(--text-muted);line-height:1.6;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+      ™ This app is trademarked by Brizuela Creative.
+    </p>
   </div>
 </div>
 
@@ -621,13 +539,6 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
       <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
       <circle cx="12" cy="17" r="0.5" fill="currentColor" stroke="none"/>
     </svg>Ask
-  </button>
-  <button class="nav-btn" id="navLibrary" onclick="showPage('library',this)" aria-label="Photo Library">
-    <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="3" y="3" width="18" height="18" rx="3"/>
-      <circle cx="8.5" cy="8.5" r="1.5"/>
-      <path d="M21 15l-5-5L5 21"/>
-    </svg>Library
   </button>
   <button class="nav-btn" id="navSaved" onclick="showPage('saved',this)" aria-label="Saved question sets">
     <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -736,18 +647,6 @@ function loadSettings(){
   document.getElementById('settingHistory').checked=settings.saveHistory;
   if(settings.bigMode)document.getElementById('bigModeToggle').checked=true;
   updateVoiceUI(settings.voiceGender||'woman');
-  // Restore ElevenLabs key display
-  var key=getElKey();
-  if(key){
-    var inp=document.getElementById('elApiKey');
-    if(inp)inp.value=key;
-    showElStatus('✅ AI voices active','ok');
-    var steps=document.getElementById('elSetupSteps');
-    if(steps)steps.style.display='none';
-  } else {
-    var steps=document.getElementById('elSetupSteps');
-    if(steps)steps.style.display='block';
-  }
   updateVoiceDescLabel();
 }
 function saveSetting(k,v){settings[k]=v;try{localStorage.setItem('oigo_settings',JSON.stringify(settings));}catch(e){}}
@@ -778,44 +677,37 @@ var _elCache = {};       // phrase cache — saves quota and latency on repeats
 var _currentAudio = null;
 
 function getElKey(){
-  try{return localStorage.getItem('oigo_el_key')||'';}catch(e){return '';}
+  // API key is built in — no user input required
+  return 'sk_68c1fe6aafac28367116ed0abf8ecd729e8bff3679f69ec8';
 }
 
-function saveElKey(){
-  var val=(document.getElementById('elApiKey').value||'').trim();
-  if(!val){showElStatus('⚠️ Please paste your API key first','warn');return;}
-  try{
-    localStorage.setItem('oigo_el_key',val);
-    showElStatus('Verifying…','info');
-    _elCache={};  // clear cache when key changes
-    speakEL('Hello',null,function(ok){
-      if(ok){
-        showElStatus('✅ Key saved — AI voices active!','ok');
-        document.getElementById('elSetupSteps').style.display='none';
-        updateVoiceDescLabel();
-      } else {
-        showElStatus('❌ Invalid key or quota reached — check and retry','err');
-        document.getElementById('elSetupSteps').style.display='block';
-      }
-    });
-  }catch(e){showElStatus('⚠️ Could not save key','warn');}
-}
 
-function showElStatus(msg,type){
-  var el=document.getElementById('elKeyStatus');
-  if(!el)return;
-  el.textContent=msg;
-  el.style.color=type==='ok'?'var(--secondary)':type==='err'?'#C0392B':type==='warn'?'#856404':'var(--text-muted)';
-}
 
 function updateVoiceDescLabel(){
   var lbl=document.getElementById('voiceDescLabel');
   if(!lbl)return;
-  var key=getElKey();
   var gender=settings.voiceGender||'woman';
   var v=EL_VOICES[gender];
-  lbl.textContent=key&&v?'AI voice: '+v.name+' — '+v.desc:(key?'AI voices ready':'Add API key above for natural AI voices');
+  if(v)lbl.textContent='AI voice: '+v.name+' — '+v.desc;
 }
+
+// ── iOS audio unlock ─────────────────────────────────────────────────────────
+// iOS Safari blocks audio.play() until user has interacted with the page.
+// We silently unlock it on the very first tap anywhere.
+var _audioUnlocked = false;
+function unlockAudio(){
+  if(_audioUnlocked)return;
+  _audioUnlocked = true;
+  var ctx = new (window.AudioContext||window.webkitAudioContext)();
+  var buf = ctx.createBuffer(1,1,22050);
+  var src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.connect(ctx.destination);
+  src.start(0);
+  ctx.resume().then(function(){ ctx.close(); }).catch(function(){});
+}
+document.addEventListener('touchstart', unlockAudio, {once:true, passive:true});
+document.addEventListener('click', unlockAudio, {once:true, passive:true});
 
 // ── ElevenLabs API call ───────────────────────────────────────────────────────
 function speakEL(text,btnId,resultCb){
@@ -831,16 +723,24 @@ function speakEL(text,btnId,resultCb){
   var origHTML=btn?btn.innerHTML:null;
   if(btn)btn.innerHTML='🔊…';
 
-  function playBlob(blob){
-    var url=URL.createObjectURL(blob);
-    var audio=new Audio(url);
-    _currentAudio=audio;
-    audio.onended=function(){URL.revokeObjectURL(url);_currentAudio=null;if(btn)btn.innerHTML=origHTML;if(resultCb)resultCb(true);};
-    audio.onerror=function(){URL.revokeObjectURL(url);_currentAudio=null;if(btn)btn.innerHTML=origHTML;if(resultCb)resultCb(false);};
-    audio.play().catch(function(){if(btn)btn.innerHTML=origHTML;if(resultCb)resultCb(false);});
+  // Cache stores ArrayBuffer (not Blob) — Blobs become invalid after revokeObjectURL
+  function playBuffer(arrayBuf){
+    var blob = new Blob([arrayBuf], {type:'audio/mpeg'});
+    var url = URL.createObjectURL(blob);
+    var audio = new Audio(url);
+    _currentAudio = audio;
+    audio.onended  = function(){ URL.revokeObjectURL(url); _currentAudio=null; if(btn)btn.innerHTML=origHTML; if(resultCb)resultCb(true); };
+    audio.onerror  = function(){ URL.revokeObjectURL(url); _currentAudio=null; if(btn)btn.innerHTML=origHTML; if(resultCb)resultCb(false); speakSystem(text,null); };
+    audio.play().catch(function(e){
+      console.warn('OiGO audio.play() blocked:',e.message,'— falling back to system voice');
+      URL.revokeObjectURL(url);
+      if(btn)btn.innerHTML=origHTML;
+      speakSystem(text,btnId);
+      if(resultCb)resultCb(false);
+    });
   }
 
-  if(_elCache[cacheKey]){playBlob(_elCache[cacheKey]);return;}
+  if(_elCache[cacheKey]){ playBuffer(_elCache[cacheKey]); return; }
 
   fetch('https://api.elevenlabs.io/v1/text-to-speech/'+voiceId,{
     method:'POST',
@@ -852,22 +752,27 @@ function speakEL(text,btnId,resultCb){
     })
   })
   .then(function(res){
-    if(!res.ok){return res.json().then(function(e){throw new Error((e.detail&&e.detail.message)||'Error '+res.status);}).catch(function(){throw new Error('Error '+res.status);});}
-    return res.blob();
+    if(!res.ok){
+      return res.text().then(function(t){
+        throw new Error('ElevenLabs '+res.status+': '+t.substring(0,120));
+      });
+    }
+    return res.arrayBuffer();  // store as ArrayBuffer — safe to reuse
   })
-  .then(function(blob){
+  .then(function(buf){
     var keys=Object.keys(_elCache);
     if(keys.length>40)delete _elCache[keys[0]];
-    _elCache[cacheKey]=blob;
-    playBlob(blob);
+    _elCache[cacheKey]=buf;
+    playBuffer(buf);
   })
   .catch(function(err){
-    console.warn('ElevenLabs TTS error:',err.message);
+    console.warn('OiGO ElevenLabs error:',err.message);
     if(btn)btn.innerHTML=origHTML;
-    speakSystem(text,btnId);  // silent fallback
+    speakSystem(text,btnId);
     if(resultCb)resultCb(false);
   });
 }
+
 
 // ── Web Speech API fallback ───────────────────────────────────────────────────
 function speakSystem(text,btnId){
@@ -1008,107 +913,10 @@ function addPhotosToLibrary(files, cb){
   processNext();
 }
 
-function renderLibraryPage(){
-  var grid=document.getElementById('libraryGrid');
-  var empty=document.getElementById('libEmpty');
-  var lbl=document.getElementById('libCountLabel');
-  grid.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.8rem">Loading…</div>';
-  getLibrary(function(lib){
-    grid.innerHTML='';
-    if(!lib.length){empty.style.display='block';lbl.style.display='none';return;}
-    empty.style.display='none';lbl.style.display='block';
-    lbl.textContent='Saved Photos ('+lib.length+')';
-    lib.forEach(function(item){
-      var el=document.createElement('div');el.className='lib-item';
-      // Delete button always visible (not just on hover) for accessibility
-      el.innerHTML='<img src="'+item.data+'" alt="'+escHtml(item.name)+'">'
-        +'<div class="lib-label">'+escHtml(item.name)+'</div>'
-        +'<button class="rm-lib" aria-label="Delete '+escHtml(item.name)+' from library">×</button>';
-      el.querySelector('.rm-lib').addEventListener('click',function(e){
-        e.stopPropagation();
-        if(confirm('Delete "'+item.name+'" from your library?')){
-          deletePhotoFromDB(item.id,function(){
-            renderLibraryPage();
-            showToast('🗑 Photo removed');
-          });
-        }
-      });
-      grid.appendChild(el);
-    });
-  });
-}
+function renderLibraryPage(){} // removed — library tab no longer exists
 
 // ── LIBRARY PICKER MODAL ─────────────────────────────────────────────────────
 var selectedLibPhotos=[];
-var libPickModalSelections={}; // id → item, for the modal picker
-
-function updateLibBadge(){
-  var badge=document.getElementById('libBadge');
-  var btn=document.getElementById('openLibPickBtn');
-  if(!badge||!btn)return;
-  var n=selectedLibPhotos.length;
-  badge.textContent=n;
-  badge.style.display=n>0?'flex':'none';
-  btn.className='photo-lib-btn'+(n>0?' has-selection':'');
-}
-
-function openLibPick(){
-  var grid=document.getElementById('libPickModalGrid');
-  var countEl=document.getElementById('libPickCount');
-  if(!grid)return;
-  // Copy current selections into modal state
-  libPickModalSelections={};
-  selectedLibPhotos.forEach(function(p){libPickModalSelections[p.id]=p;});
-  grid.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.8rem">Loading…</div>';
-  openModal('libPickModal');
-  getLibrary(function(lib){
-    grid.innerHTML='';
-    if(!lib.length){
-      grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px 16px;color:var(--text-muted)"><div style="font-size:2rem;margin-bottom:8px">🖼️</div><div style="font-weight:700">No photos in library yet</div><div style="font-size:0.78rem;margin-top:4px">Go to the Library tab to add photos</div></div>';
-      return;
-    }
-    function updateCount(){
-      var n=Object.keys(libPickModalSelections).length;
-      if(countEl)countEl.textContent=n>0?n+' selected':'';
-    }
-    updateCount();
-    lib.forEach(function(item){
-      var sel=!!libPickModalSelections[item.id];
-      var el=document.createElement('div');
-      el.className='lib-item'+(sel?' selected-lib':'');
-      el.setAttribute('role','checkbox');
-      el.setAttribute('tabindex','0');
-      el.setAttribute('aria-checked',sel?'true':'false');
-      el.setAttribute('aria-label',item.name);
-      el.innerHTML='<img src="'+item.data+'" alt="'+escHtml(item.name)+'">'
-        +'<div class="lib-label">'+escHtml(item.name)+'</div>';
-      var toggle=function(){
-        if(libPickModalSelections[item.id]){
-          delete libPickModalSelections[item.id];
-          el.classList.remove('selected-lib');
-          el.setAttribute('aria-checked','false');
-        } else {
-          libPickModalSelections[item.id]=item;
-          el.classList.add('selected-lib');
-          el.setAttribute('aria-checked','true');
-        }
-        updateCount();
-      };
-      el.addEventListener('click',toggle);
-      el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle();}});
-      grid.appendChild(el);
-    });
-  });
-}
-
-function confirmLibPick(){
-  selectedLibPhotos=Object.values(libPickModalSelections);
-  closeModal('libPickModal');
-  renderPhotoPreviews();
-  updateLibBadge();
-  var n=selectedLibPhotos.length;
-  if(n>0)showToast('📷 '+n+' photo'+(n!==1?'s':'')+' selected from library');
-}
 
 function renderLibPicker(){
   // Compatibility stub — badge update is the new mechanism
@@ -1340,8 +1148,8 @@ function resetAll(){
   if(activeRec){activeRec.stop();activeRec=null;}
   document.getElementById('questionInput').value='';
   document.getElementById('optionsInput').value='';
-  uploadedPhotos=[];selectedLibPhotos=[];libPickModalSelections={};
-  renderPhotoPreviews();updateLibBadge();
+  uploadedPhotos=[];selectedLibPhotos=[];
+  renderPhotoPreviews();
   document.getElementById('resultsArea').style.display='none';
   if(document.getElementById('typeAnswerBtn'))document.getElementById('typeAnswerBtn').style.display='none';
   document.getElementById('errorBox').style.display='none';
@@ -1445,7 +1253,6 @@ function showPage(name,btn){
   if(btn)btn.classList.add('active');
   if(name==='saved')renderSavedSets();
   if(name==='log')renderHistory();
-  if(name==='library')renderLibraryPage();
   window.scrollTo(0,0);
 }
 
@@ -1533,27 +1340,9 @@ document.getElementById('photoFileInput').addEventListener('change',function(e){
   this.value=''; // reset immediately so same file can be re-picked
 
   var idx=0;
-  var newPhotos=[]; // collect resized photos here
   function addNext(){
     if(idx>=files.length){
-      // FIX: save the ALREADY-RESIZED data to library (not re-reading File objects)
-      // This prevents double-resize mismatch and iOS File expiry errors
-      if(newPhotos.length){
-        var pending=newPhotos.length;
-        newPhotos.forEach(function(p){
-          var sig=p.data.substring(0,120);
-          getLibrary(function(lib){
-            var exists=lib.some(function(x){return x.data&&x.data.substring(0,120)===sig;});
-            if(!exists){
-              addPhotoToDB({id:Date.now()+'-'+Math.round(Math.random()*99999),data:p.data,name:p.name,ts:Date.now()},function(){
-                if(--pending===0){renderLibraryPage();renderLibPicker();showToast('📷 '+newPhotos.length+' photo'+(newPhotos.length!==1?'s':'')+' saved');}
-              });
-            } else {
-              if(--pending===0){renderLibraryPage();renderLibPicker();}
-            }
-          });
-        });
-      }
+      showToast('📷 Photos added');
       return;
     }
     var file=files[idx++];
@@ -1562,8 +1351,13 @@ document.getElementById('photoFileInput').addEventListener('change',function(e){
       resizeImage(ev.target.result,520,0.78,function(resized){
         var photo={data:resized,name:file.name.replace(/\.[^.]+$/,'').replace(/[-_]/g,' ')};
         uploadedPhotos.push(photo);
-        newPhotos.push(photo);
         renderPhotoPreviews();
+        // Also persist to IndexedDB for use in saved sets
+        var sig=resized.substring(0,120);
+        getLibrary(function(lib){
+          var exists=lib.some(function(x){return x.data&&x.data.substring(0,120)===sig;});
+          if(!exists)addPhotoToDB({id:Date.now()+'-'+Math.round(Math.random()*99999),data:resized,name:photo.name,ts:Date.now()},null);
+        });
         addNext();
       });
     };
@@ -1571,22 +1365,6 @@ document.getElementById('photoFileInput').addEventListener('change',function(e){
     reader.readAsDataURL(file);
   }
   addNext();
-});
-
-document.getElementById('libUploadZone').addEventListener('click',function(e){
-  if(e.target.tagName==='INPUT')return;
-  document.getElementById('libFileInput').click();
-});
-document.getElementById('libFileInput').addEventListener('change',function(e){
-  var files=Array.from(e.target.files);
-  if(!files.length){return;}
-  var count=files.length;
-  this.value='';
-  addPhotosToLibrary(files,function(){
-    renderLibraryPage();
-    renderLibPicker();
-    showToast('📷 '+count+' photo'+(count!==1?'s':'')+' added to library');
-  });
 });
 
 document.getElementById('quickChips').addEventListener('click',function(e){
