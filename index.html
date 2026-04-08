@@ -386,7 +386,7 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
       <div class="chip" data-q="What would you like to eat?" data-o="chicken, steak, fish, pizza, pasta, salad">🍽️ Foods</div>
       <div class="chip" data-q="What would you like to drink?" data-o="water, juice, milk, soda, hot chocolate">🥤 Drinks</div>
       <div class="chip" data-q="What would you like to do?" data-o="watch TV, play outside, draw, read, video game, music">🎮 Activities</div>
-      <div class="chip" data-q="How are you feeling?" data-o="happy, sad, angry, tired, hungry, sick, excited">😊 Feelings</div>
+      <div class="chip" data-q="How are you feeling?" data-o="happy, sad, angry, tired, hungry, sick, excited, nervous">😊 Feelings</div>
       <div class="chip" data-q="Where would you like to go?" data-o="park, store, home, school, restaurant, library">📍 Places</div>
       <div class="chip" data-q="What do you need right now?" data-o="bathroom, water, hug, quiet, snack, help, break">🆘 Needs</div>
       <div class="chip" data-q="What would you like for a snack?" data-o="fries, apple, orange, grapes, chips, cookies">🍎 Snacks</div>
@@ -418,7 +418,7 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
     <div class="answer-banner" id="answerBanner" style="display:none" aria-live="assertive" aria-label="Selected answer" role="region">
       <div id="ansVisual"></div>
       <div class="ans-wrap">
-        <div class="ans-said">I want…</div>
+        <div class="ans-said" id="ansSaid">I want…</div>
         <div class="ans-choice" id="ansChoice"></div>
       </div>
       <div class="ans-btns">
@@ -1039,12 +1039,13 @@ function selectCard(i){
   visual.innerHTML=c.photo?'<img src="'+c.photo+'" class="ans-photo" alt="'+escHtml(c.label)+'">'
     :'<div class="ans-emoji">'+c.emoji+'</div>';
   document.getElementById('ansChoice').textContent=c.label;
+  document.getElementById('ansSaid').textContent=getAnsSaid();
   document.getElementById('answerBanner').style.display='flex';
   // Update sr-announcement so screen readers announce the selection
   var ann=document.getElementById('sr-announce');
-  if(ann)ann.textContent='Selected: '+c.label+'. I want '+c.label;
+  if(ann)ann.textContent='Selected: '+c.label+'. '+buildSpokenResponse(c.label);
   setTimeout(function(){document.getElementById('answerBanner').scrollIntoView({behavior:'smooth',block:'nearest'});},60);
-  if(settings.autoSpeakAns)speak('I want '+c.label,'speakAnsBtn');
+  if(settings.autoSpeakAns)speak(buildSpokenResponse(c.label),'speakAnsBtn');
   if(settings.saveHistory)saveHistory(currentQuestion,c);
 }
 
@@ -1177,6 +1178,28 @@ function showToast(msg){
 function escHtml(s){if(!s)return'';return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 
+
+// ── RESPONSE PHRASE — context-aware ──────────────────────────────────────────
+var HURT_TRIGGERS    = ['hurt','pain','ache','sore','where does','what hurts','body part'];
+var FEELING_TRIGGERS = ['feeling','feel','emotion','mood','how are you','how do you'];
+function getResponsePrefix(){
+  var q = (currentQuestion || '').toLowerCase();
+  for(var i=0;i<HURT_TRIGGERS.length;i++){
+    if(q.indexOf(HURT_TRIGGERS[i])!==-1) return {said:'My … hurts',spoken:'My {label} hurts'};
+  }
+  for(var i=0;i<FEELING_TRIGGERS.length;i++){
+    if(q.indexOf(FEELING_TRIGGERS[i])!==-1) return {said:'I feel…',spoken:'I feel {label}'};
+  }
+  return {said:'I want…', spoken:'I want {label}'};
+}
+function buildSpokenResponse(label){
+  var p=getResponsePrefix();
+  return p.spoken.replace('{label}',label);
+}
+function getAnsSaid(){
+  return getResponsePrefix().said;
+}
+
 // ── TYPE YOUR ANSWER ──────────────────────────────────────────────────────────
 function submitTypedAnswer(){
   var val=document.getElementById('typeAnswerInput').value.trim();
@@ -1190,10 +1213,10 @@ function submitTypedAnswer(){
   document.getElementById('ansChoice').textContent=label;
   document.getElementById('answerBanner').style.display='flex';
   document.getElementById('answerBanner').scrollIntoView({behavior:'smooth',block:'nearest'});
-  if(settings.autoSpeakAns)speak('I want '+label,'speakAnsBtn');
+  if(settings.autoSpeakAns)speak(buildSpokenResponse(label),'speakAnsBtn');
   if(settings.saveHistory)saveHistory(currentQuestion,{label:label,emoji:emoji,photo:null});
   var ann=document.getElementById('sr-announce');
-  if(ann)ann.textContent='Selected: '+label+'. I want '+label;
+  if(ann)ann.textContent='Selected: '+label+'. '+buildSpokenResponse(label);
 }
 
 // Allow Enter key to submit typed answer
@@ -1207,7 +1230,7 @@ document.getElementById('goBtn').addEventListener('click',function(){buildCards(
 document.getElementById('micQBtn').addEventListener('click',function(){startMic('q');});
 document.getElementById('micOBtn').addEventListener('click',function(){startMic('o');});
 document.getElementById('speakQBtn').addEventListener('click',function(){var t=document.getElementById('qText').textContent;if(t)speak(t,'speakQBtn');});
-document.getElementById('speakAnsBtn').addEventListener('click',function(){var t=document.getElementById('ansChoice').textContent;if(t)speak('I want '+t,'speakAnsBtn');});
+document.getElementById('speakAnsBtn').addEventListener('click',function(){var t=document.getElementById('ansChoice').textContent;if(t)speak(buildSpokenResponse(t),'speakAnsBtn');});
 document.getElementById('saveSetBtn').addEventListener('click',openSaveModal);
 document.getElementById('bigModeToggle').addEventListener('change',renderCards);
 document.getElementById('questionInput').addEventListener('keydown',function(e){if(e.key==='Enter')buildCards();});
