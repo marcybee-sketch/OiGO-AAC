@@ -25,7 +25,7 @@ html{scroll-behavior:smooth}
 body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-serif;background:var(--bg);min-height:100vh;color:var(--text);padding-bottom:calc(72px + var(--safe-bottom))}
 .nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,0.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);display:flex;padding:6px 0 calc(6px + var(--safe-bottom));z-index:100;box-shadow:0 -2px 16px rgba(45,127,249,0.08)}
 .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;padding:6px 4px;font-size:0.58rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;transition:color 0.15s}
-.nav-btn .ni{font-size:1.3rem;line-height:1;transition:transform 0.15s}
+.nav-btn .ni{width:22px;height:22px;stroke:currentColor;transition:transform 0.15s;display:block}
 .nav-btn.active{color:var(--primary)}
 .nav-btn.active .ni{transform:scale(1.1)}
 .page{display:none;padding:20px 16px 12px;max-width:680px;margin:0 auto;animation:fadeUp 0.22s ease}
@@ -111,8 +111,8 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 .lib-item.selected-lib{border-color:var(--primary);border-width:2.5px}
 .lib-item.selected-lib::after{content:'✓';position:absolute;top:4px;right:4px;background:var(--primary);color:#fff;font-size:0.68rem;font-weight:900;width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center}
 .lib-item:active{transform:scale(0.95)}
-.lib-item .rm-lib{position:absolute;top:3px;left:3px;width:17px;height:17px;background:rgba(0,0,0,0.5);border-radius:50%;color:#fff;font-size:0.58rem;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.15s}
-.lib-item:active .rm-lib{opacity:1}
+.lib-item .rm-lib{position:absolute;top:4px;left:4px;width:22px;height:22px;background:rgba(220,53,69,0.88);border:1.5px solid rgba(255,255,255,0.7);border-radius:50%;color:#fff;font-size:0.7rem;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:1;-webkit-appearance:none;padding:0;}
+
 .lib-label{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.45);color:#fff;font-size:0.58rem;font-weight:700;text-align:center;padding:2px 2px 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border)}
 .toggle-row:last-child{border-bottom:none}
@@ -161,6 +161,18 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 .toast{position:fixed;bottom:calc(80px + var(--safe-bottom));left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 20px;border-radius:50px;font-weight:700;font-size:0.83rem;z-index:300;pointer-events:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.2)}
 @media(max-width:400px){.cards-grid,.cards-grid.big{grid-template-columns:repeat(2,1fr)}.q-text{font-size:1.15rem}}
 @media(max-width:400px){.cards-grid,.cards-grid.big{grid-template-columns:repeat(2,1fr)}.q-text{font-size:1.15rem}}
+
+
+/* Type answer button */
+.btn-type-answer{
+  width:100%;background:none;border:1.5px dashed var(--border);
+  border-radius:var(--radius-sm);padding:11px 16px;
+  font-family:inherit;font-size:0.82rem;font-weight:700;
+  color:var(--text-muted);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  gap:7px;margin-bottom:12px;transition:all 0.15s;
+}
+.btn-type-answer:active{background:var(--primary-light);border-color:var(--primary);color:var(--primary);}
 
 /* ── ACCESSIBILITY FIXES ── */
 
@@ -286,6 +298,21 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 <a href="#main-content" class="skip-link">Skip to main content</a>
 <div id="sr-announce" aria-live="assertive" aria-atomic="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)"></div>
 
+
+<!-- Type Your Answer Modal -->
+<div class="overlay" id="typeModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">✏️ Type Your Answer</div>
+    <div class="modal-sub">Type any answer not listed in the options above.</div>
+    <input class="text-input" id="typeAnswerInput" type="text" placeholder="Type your answer here…" maxlength="100" aria-label="Type a custom answer" style="width:100%;margin-bottom:16px">
+    <div style="display:flex;gap:10px">
+      <button class="btn-secondary" style="flex:1" onclick="closeModal('typeModal')">Cancel</button>
+      <button class="btn-primary" style="flex:2" onclick="submitTypedAnswer()">Submit Answer</button>
+    </div>
+  </div>
+</div>
+
 <!-- Mic Help Modal -->
 <div class="overlay" id="micModal">
   <div class="modal">
@@ -339,7 +366,7 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
       <input class="text-input" id="optionsInput" type="text" placeholder="chicken, pizza, fish, salad" maxlength="400" aria-label="Answer options, separated by commas" aria-describedby="micOStatus">
       <button class="mic-btn" id="micOBtn" aria-label="Speak answer options aloud" title="Speak options">🎤</button>
     </div>
-    <div class="mic-status" id="micOStatus" aria-live="polite" role="status">Say "or" between each option and commas are added automatically</div>
+    <div class="mic-status" id="micOStatus" aria-live="polite" role="status">Say "or" between each option to add commas automatically</div>
 
     <div class="photo-upload-zone" id="photoUploadZone">
       <div class="puz-icon">📷</div>
@@ -348,12 +375,6 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
       <input type="file" id="photoFileInput" accept="image/*" multiple style="display:none">
     </div>
     <div class="photo-preview-grid" id="photoPreviewGrid"></div>
-
-    <div id="libPickerArea" style="display:none">
-      <div class="field-label gray" style="margin-top:2px">📚 Library <span style="font-size:0.6rem;font-weight:500;text-transform:none;letter-spacing:0;color:var(--text-muted)">— tap to select</span></div>
-      <div class="lib-grid" id="libPickerGrid"></div>
-      <div style="height:6px"></div>
-    </div>
 
     <button class="btn-primary" id="goBtn">Show Visual Cards</button>
     <div class="error-box" id="errorBox" role="alert" aria-live="assertive" aria-atomic="true"></div>
@@ -368,7 +389,8 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
       <div class="chip" data-q="How are you feeling?" data-o="happy, sad, angry, tired, hungry, sick, excited">😊 Feelings</div>
       <div class="chip" data-q="Where would you like to go?" data-o="park, store, home, school, restaurant, library">📍 Places</div>
       <div class="chip" data-q="What do you need right now?" data-o="bathroom, water, hug, quiet, snack, help, break">🆘 Needs</div>
-      <div class="chip" data-q="What would you like for a snack?" data-o="apple, crackers, chips, cookies, grapes, yogurt">🍎 Snacks</div>
+      <div class="chip" data-q="What would you like for a snack?" data-o="fries, apple, orange, grapes, chips, cookies">🍎 Snacks</div>
+      <div class="chip" data-q="Where does it hurt?" data-o="head, stomach, arm, leg, hand, foot, ear, throat, back, tooth">🤕 Body Parts</div>
     </div>
   </div>
 
@@ -389,6 +411,10 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
       </div>
     </div>
     <div class="cards-grid" id="cardsGrid"></div>
+    <button class="btn-type-answer" id="typeAnswerBtn" onclick="openModal('typeModal')" aria-label="Type a custom answer not listed">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="13" y1="18" x2="3" y2="18"/></svg>
+      Type a different answer
+    </button>
     <div class="answer-banner" id="answerBanner" style="display:none" aria-live="assertive" aria-label="Selected answer" role="region">
       <div id="ansVisual"></div>
       <div class="ans-wrap">
@@ -487,11 +513,41 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 
 </main>
 <nav class="nav" aria-label="Main navigation">
-  <button class="nav-btn active" id="navAsk" onclick="showPage('ask',this)"><span class="ni">🎯</span>Ask</button>
-  <button class="nav-btn" id="navLibrary" onclick="showPage('library',this)"><span class="ni">🖼️</span>Library</button>
-  <button class="nav-btn" id="navSaved" onclick="showPage('saved',this)"><span class="ni">💾</span>Saved</button>
-  <button class="nav-btn" id="navLog" onclick="showPage('log',this)"><span class="ni">📋</span>Log</button>
-  <button class="nav-btn" id="navSettings" onclick="showPage('settings',this)"><span class="ni">⚙️</span>Settings</button>
+  <button class="nav-btn active" id="navAsk" onclick="showPage('ask',this)" aria-label="Ask — create a question">
+    <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+      <circle cx="12" cy="17" r="0.5" fill="currentColor" stroke="none"/>
+    </svg>Ask
+  </button>
+  <button class="nav-btn" id="navLibrary" onclick="showPage('library',this)" aria-label="Photo Library">
+    <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="3"/>
+      <circle cx="8.5" cy="8.5" r="1.5"/>
+      <path d="M21 15l-5-5L5 21"/>
+    </svg>Library
+  </button>
+  <button class="nav-btn" id="navSaved" onclick="showPage('saved',this)" aria-label="Saved question sets">
+    <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+      <polyline points="17 21 17 13 7 13 7 21"/>
+      <polyline points="7 3 7 8 15 8"/>
+    </svg>Saved
+  </button>
+  <button class="nav-btn" id="navLog" onclick="showPage('log',this)" aria-label="Response log">
+    <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="8" y1="13" x2="16" y2="13"/>
+      <line x1="8" y1="17" x2="12" y2="17"/>
+    </svg>Log
+  </button>
+  <button class="nav-btn" id="navSettings" onclick="showPage('settings',this)" aria-label="Settings">
+    <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>Settings
+  </button>
 </nav>
 
 <script>
@@ -524,27 +580,42 @@ var EMOJI_MAP={
   chicken:"🍗",steak:"🥩",fish:"🐟",pizza:"🍕",pasta:"🍝",salad:"🥗",burger:"🍔",hotdog:"🌭","hot dog":"🌭",taco:"🌮",burrito:"🌯",sushi:"🍣",sandwich:"🥪",soup:"🍜",rice:"🍚",bread:"🍞",egg:"🥚",eggs:"🥚",noodles:"🍜",shrimp:"🍤",turkey:"🦃",bacon:"🥓",ham:"🍖",meat:"🥩",fries:"🍟","french fries":"🍟",waffle:"🧇",pancake:"🥞",pancakes:"🥞",cereal:"🥣",oatmeal:"🥣",toast:"🍞",bagel:"🥯","mac and cheese":"🧀",cheese:"🧀","peanut butter":"🥜",
   apple:"🍎",banana:"🍌",grapes:"🍇",orange:"🍊",strawberry:"🍓",watermelon:"🍉",mango:"🥭",pineapple:"🍍",cherry:"🍒",peach:"🍑",pear:"🍐",lemon:"🍋",blueberry:"🫐",blueberries:"🫐",
   carrot:"🥕",broccoli:"🥦",corn:"🌽",potato:"🥔",tomato:"🍅",avocado:"🥑",cucumber:"🥒",pepper:"🫑",lettuce:"🥬",
-  crackers:"🥨",chips:"🍟",cookies:"🍪",cookie:"🍪",cake:"🎂",cupcake:"🧁",candy:"🍬",chocolate:"🍫",icecream:"🍦","ice cream":"🍦",donut:"🍩",yogurt:"🍦",popcorn:"🍿",nuts:"🥜",
+  crackers:"🍘",chips:"🥔",cookies:"🍪",cookie:"🍪",cake:"🎂",cupcake:"🧁",candy:"🍬",chocolate:"🍫",icecream:"🍦","ice cream":"🍦",donut:"🍩",yogurt:"🍦",popcorn:"🍿",nuts:"🥜",
   water:"💧",juice:"🧃",milk:"🥛",soda:"🥤",tea:"🍵",coffee:"☕","hot chocolate":"🍫",cocoa:"🍫",lemonade:"🍋",smoothie:"🥤",
   "watch tv":"📺",tv:"📺",television:"📺","video game":"🎮",videogame:"🎮",game:"🎮",games:"🎮","play outside":"🌳",outside:"🌳",run:"🏃",running:"🏃",swim:"🏊",swimming:"🏊",bike:"🚲",draw:"🎨",drawing:"🎨",paint:"🎨",painting:"🎨",read:"📚",reading:"📚",book:"📖",music:"🎵",sing:"🎤",dance:"💃",sleep:"😴",nap:"😴",play:"🧸",toys:"🧸",lego:"🧱",puzzle:"🧩",craft:"✂️",crafts:"✂️",soccer:"⚽",basketball:"🏀",baseball:"⚾",football:"🏈",tennis:"🎾",hiking:"🥾",hike:"🥾",jump:"🤸",jumping:"🤸",
   happy:"😊",sad:"😢",angry:"😠",mad:"😠",tired:"😴",sleepy:"😴",hungry:"🍽️",thirsty:"💧",sick:"🤒",excited:"🤩",scared:"😨",nervous:"😰",calm:"😌",bored:"😑",frustrated:"😤",surprised:"😲",confused:"🤔",silly:"🤪",worried:"😟",lonely:"😔",proud:"😊",
   park:"🌳",store:"🛒",home:"🏠",school:"🏫",restaurant:"🍽️",library:"📚",beach:"🏖️",pool:"🏊",playground:"🛝",hospital:"🏥",mall:"🏬",movies:"🎬",gym:"🏋️",church:"⛪",
   shirt:"👕","t-shirt":"👕",tshirt:"👕",sweater:"🧥",hoodie:"🧥",jacket:"🧥",shorts:"🩳",jeans:"👖",pants:"👖",dress:"👗",pajamas:"🩳",socks:"🧦",shoes:"👟",sneakers:"👟",hat:"🧢",coat:"🧥",
-  bathroom:"🚽",toilet:"🚽",potty:"🚽",hug:"🤗",quiet:"🤫",snack:"🍎",help:"🆘",break:"⏸️",medicine:"💊",blanket:"🛏️",head:"🤕",stomach:"🤢",tummy:"🤢",hand:"🖐️",hands:"🙌",foot:"🦶",feet:"🦶",arm:"💪",ear:"👂",hurt:"🤕",pain:"🤕",owie:"🤕",bath:"🛁",shower:"🚿",bed:"🛏️",toothbrush:"🪥",
+  bathroom:"🚽",toilet:"🚽",potty:"🚽",hug:"🤗",quiet:"🤫",snack:"🍎",help:"🆘",break:"⏸️",medicine:"💊",blanket:"🛏️",head:"🤕",stomach:"🤢",tummy:"🤢",hand:"🖐️",hands:"🙌",foot:"🦶",feet:"🦶",arm:"💪",leg:"🦵",knee:"🦵",ankle:"🦶",ear:"👂",throat:"🗣️",tooth:"🦷",teeth:"🦷",back:"🩻",chest:"🫀",neck:"🫀",nose:"👃",eye:"👁️",eyes:"👀",finger:"🖐️",shoulder:"💪",elbow:"💪",hip:"🦵",hurt:"🤕",pain:"🤕",owie:"🤕",bath:"🛁",shower:"🚿",bed:"🛏️",toothbrush:"🪥",
   math:"➕",writing:"✏️",art:"🎨",science:"🔬",computer:"💻",recess:"🛝",homework:"📝",spelling:"📖",lunch:"🍱",
   rain:"🌧️",rainy:"🌧️",snow:"❄️",snowy:"❄️",sunny:"☀️",cloudy:"☁️",windy:"💨",storm:"⛈️",thunder:"⛈️",fog:"🌫️",
   mom:"👩",mama:"👩",mommy:"👩",dad:"👨",daddy:"👨",sister:"👧",brother:"👦",friend:"🧑",teacher:"👩‍🏫",doctor:"👨‍⚕️",grandma:"👵",grandpa:"👴",baby:"👶",
-  dog:"🐶",cat:"🐱",bird:"🐦",rabbit:"🐰",hamster:"🐹",turtle:"🐢",horse:"🐴",cow:"🐮",pig:"🐷",duck:"🦆",bear:"🐻",lion:"🦁",elephant:"🐘",monkey:"🐒",fish:"🐠",
+  dog:"🐶",cat:"🐱",bird:"🐦",rabbit:"🐰",hamster:"🐹",turtle:"🐢",horse:"🐴",cow:"🐮",pig:"🐷",duck:"🦆",bear:"🐻",lion:"🦁",elephant:"🐘",monkey:"🐒",fish:"🐟",
   yes:"✅",no:"❌",maybe:"🤔",ok:"👍",stop:"✋",go:"🚦",more:"➕",done:"✅","all done":"✅",finished:"✅",wait:"⏳",good:"👍",bad:"👎",love:"❤️",star:"⭐",sun:"☀️",moon:"🌙",please:"🙏","thank you":"😊",sorry:"😔",fast:"💨",slow:"🐢",big:"⬆️",little:"⬇️",loud:"🔊",soft:"🤫",inside:"🏠",hot:"🌡️",cold:"🥶"
 };
 
 function getEmoji(w){
   var k=w.toLowerCase().trim();
+  // Exact checks first — prevents short words matching long keys (leg→lego, back→bacon)
   if(BRAND_MAP[k])return BRAND_MAP[k];
   if(COLOR_WORDS[k])return COLOR_WORDS[k];
   if(EMOJI_MAP[k])return EMOJI_MAP[k];
+  // Partial match — only allow if the word being looked up is AT LEAST half
+  // the length of the matching key, preventing "leg" from matching "lego"
   var keys=Object.keys(EMOJI_MAP),best=null,bestLen=0;
-  for(var i=0;i<keys.length;i++){var key=keys[i];if(k.indexOf(key)!==-1||key.indexOf(k)!==-1){if(key.length>bestLen){bestLen=key.length;best=key;}}}
+  for(var i=0;i<keys.length;i++){
+    var key=keys[i];
+    var isMatch=(k.indexOf(key)!==-1||key.indexOf(k)!==-1);
+    if(isMatch){
+      // Reject if the input word is much shorter than the key (avoids over-matching)
+      var shorter=Math.min(k.length,key.length);
+      var longer=Math.max(k.length,key.length);
+      if(shorter/longer < 0.6)continue; // e.g. "leg"(3) vs "lego"(4) = 0.75 ✅, "back"(4) vs "bacon"(5) = 0.8 ✅
+      // Extra guard: if input exactly ends a compound key like "tooth" in "toothbrush", skip
+      if(key.length>k.length+2 && key.indexOf(k)===0)continue; // "tooth" starts "toothbrush" — skip
+      if(key.length>bestLen){bestLen=key.length;best=key;}
+    }
+  }
   if(best)return EMOJI_MAP[best];
   var bk=Object.keys(BRAND_MAP);
   for(var i=0;i<bk.length;i++){if(k.indexOf(bk[i])!==-1||bk[i].indexOf(k)!==-1)return BRAND_MAP[bk[i]];}
@@ -581,105 +652,159 @@ function speak(text,btnId){
 }
 if(window.speechSynthesis){window.speechSynthesis.getVoices();window.speechSynthesis.onvoiceschanged=function(){window.speechSynthesis.getVoices();};}
 
-// ── PHOTO LIBRARY ────────────────────────────────────────────────────────────
-function getLibrary(){try{return JSON.parse(localStorage.getItem('oigo_library')||'[]');}catch(e){return[];}}
+// ── PHOTO LIBRARY — IndexedDB for large local storage ───────────────────────
+var DB_NAME='oigo_db', DB_VER=1, DB_STORE='photos';
+var _db=null;
 
-function saveLibrary(lib){
-  try{
-    localStorage.setItem('oigo_library',JSON.stringify(lib));
-    return true;
-  }catch(e){
-    // Storage full — try removing oldest photos until it fits
-    if(lib.length>1){
-      lib.shift(); // remove oldest
-      return saveLibrary(lib);
-    }
-    showToast('⚠️ Storage full. Clear some photos in the Library tab.');
-    return false;
-  }
+function openDB(cb){
+  if(_db){cb(_db);return;}
+  var req=indexedDB.open(DB_NAME,DB_VER);
+  req.onupgradeneeded=function(e){
+    var db=e.target.result;
+    if(!db.objectStoreNames.contains(DB_STORE))
+      db.createObjectStore(DB_STORE,{keyPath:'id'});
+  };
+  req.onsuccess=function(e){_db=e.target.result;cb(_db);};
+  req.onerror=function(){
+    // Fallback to localStorage if IndexedDB unavailable
+    console.warn('IndexedDB unavailable, using localStorage');
+    _db='ls'; cb('ls');
+  };
 }
 
-// Resize image to max dimension via canvas before storing — fixes quota errors
+function getLibrary(cb){
+  openDB(function(db){
+    if(db==='ls'){
+      try{cb(JSON.parse(localStorage.getItem('oigo_library')||'[]'));}catch(e){cb([]);}
+      return;
+    }
+    var tx=db.transaction(DB_STORE,'readonly');
+    var store=tx.objectStore(DB_STORE);
+    var req=store.getAll();
+    req.onsuccess=function(){cb(req.result||[]);};
+    req.onerror=function(){cb([]);};
+  });
+}
+
+function addPhotoToDB(item, cb){
+  openDB(function(db){
+    if(db==='ls'){
+      try{
+        var lib=JSON.parse(localStorage.getItem('oigo_library')||'[]');
+        lib.push(item);
+        localStorage.setItem('oigo_library',JSON.stringify(lib));
+      }catch(e){showToast('⚠️ Storage full — clear some library photos');}
+      if(cb)cb();return;
+    }
+    var tx=db.transaction(DB_STORE,'readwrite');
+    tx.objectStore(DB_STORE).put(item);
+    tx.oncomplete=function(){if(cb)cb();};
+    tx.onerror=function(){showToast('⚠️ Could not save photo');if(cb)cb();};
+  });
+}
+
+function deletePhotoFromDB(id, cb){
+  openDB(function(db){
+    if(db==='ls'){
+      try{
+        var lib=JSON.parse(localStorage.getItem('oigo_library')||'[]');
+        localStorage.setItem('oigo_library',JSON.stringify(lib.filter(function(x){return x.id!==id;})));
+      }catch(e){}
+      if(cb)cb();return;
+    }
+    var tx=db.transaction(DB_STORE,'readwrite');
+    tx.objectStore(DB_STORE).delete(id);
+    tx.oncomplete=function(){if(cb)cb();};
+  });
+}
+
+// Resize before storing — keeps files small even from high-res camera
 function resizeImage(dataUrl, maxPx, quality, cb){
   var img=new Image();
   img.onload=function(){
     var w=img.width, h=img.height;
-    if(w<=maxPx && h<=maxPx){ cb(dataUrl); return; }
-    var ratio=Math.min(maxPx/w, maxPx/h);
+    if(w<=maxPx && h<=maxPx){cb(dataUrl);return;}
+    var ratio=Math.min(maxPx/w,maxPx/h);
     var canvas=document.createElement('canvas');
-    canvas.width=Math.round(w*ratio);
-    canvas.height=Math.round(h*ratio);
-    var ctx=canvas.getContext('2d');
-    ctx.drawImage(img,0,0,canvas.width,canvas.height);
-    cb(canvas.toDataURL('image/jpeg', quality||0.75));
+    canvas.width=Math.round(w*ratio);canvas.height=Math.round(h*ratio);
+    canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+    cb(canvas.toDataURL('image/jpeg',quality||0.78));
   };
-  img.onerror=function(){ cb(dataUrl); }; // fallback: store original
+  img.onerror=function(){cb(dataUrl);};
   img.src=dataUrl;
 }
 
-// FIX: sequential processing (not parallel) eliminates race condition
-// FIX: resize before storage eliminates quota errors
-// FIX: dedup by ID hash (first 100 chars) not full base64 comparison
+// Sequential processing — eliminates race condition
 function addPhotosToLibrary(files, cb){
-  if(!files||!files.length){ if(cb)cb(); return; }
+  if(!files||!files.length){if(cb)cb();return;}
   var fileArr=Array.from(files);
   var idx=0;
-
   function processNext(){
-    if(idx>=fileArr.length){ if(cb)cb(); return; }
+    if(idx>=fileArr.length){if(cb)cb();return;}
     var file=fileArr[idx++];
     var reader=new FileReader();
     reader.onload=function(ev){
-      resizeImage(ev.target.result, 480, 0.78, function(resized){
-        var lib=getLibrary(); // re-read each time — fresh after each save
-        // Dedup by comparing only the first 120 chars of base64 (fast, reliable)
+      resizeImage(ev.target.result,520,0.78,function(resized){
         var sig=resized.substring(0,120);
-        var exists=lib.some(function(x){ return x.data && x.data.substring(0,120)===sig; });
-        if(!exists){
-          lib.push({
-            id: Date.now()+'-'+Math.round(Math.random()*99999),
-            data: resized,
-            name: file.name.replace(/\.[^.]+$/,'').replace(/[-_]/g,' ')
-          });
-          saveLibrary(lib);
-        }
-        processNext(); // process next file only after this one is done
+        getLibrary(function(lib){
+          var exists=lib.some(function(x){return x.data&&x.data.substring(0,120)===sig;});
+          if(!exists){
+            addPhotoToDB({
+              id:Date.now()+'-'+Math.round(Math.random()*99999),
+              data:resized,
+              name:file.name.replace(/\.[^.]+$/,'').replace(/[-_]/g,' '),
+              ts:Date.now()
+            },processNext);
+          } else { processNext(); }
+        });
       });
     };
-    reader.onerror=function(){ processNext(); }; // skip bad file, continue
+    reader.onerror=function(){processNext();};
     reader.readAsDataURL(file);
   }
-
   processNext();
 }
 
 function renderLibraryPage(){
-  var lib=getLibrary();
   var grid=document.getElementById('libraryGrid');
   var empty=document.getElementById('libEmpty');
   var lbl=document.getElementById('libCountLabel');
-  grid.innerHTML='';
-  if(!lib.length){empty.style.display='block';lbl.style.display='none';return;}
-  empty.style.display='none';lbl.style.display='block';
-  lbl.textContent='Saved Photos ('+lib.length+')';
-  lib.forEach(function(item){
-    var el=document.createElement('div');el.className='lib-item';
-    el.innerHTML='<img src="'+item.data+'" alt="'+escHtml(item.name)+'"><div class="lib-label">'+escHtml(item.name)+'</div><div class="rm-lib">×</div>';
-    el.querySelector('.rm-lib').addEventListener('click',function(e){
-      e.stopPropagation();
-      if(confirm('Remove "'+item.name+'" from library?')){
-        var lib2=getLibrary().filter(function(x){return x.id!==item.id;});
-        saveLibrary(lib2);renderLibraryPage();renderLibPicker();
-      }
+  grid.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.8rem">Loading…</div>';
+  getLibrary(function(lib){
+    grid.innerHTML='';
+    if(!lib.length){empty.style.display='block';lbl.style.display='none';return;}
+    empty.style.display='none';lbl.style.display='block';
+    lbl.textContent='Saved Photos ('+lib.length+')';
+    lib.forEach(function(item){
+      var el=document.createElement('div');el.className='lib-item';
+      // Delete button always visible (not just on hover) for accessibility
+      el.innerHTML='<img src="'+item.data+'" alt="'+escHtml(item.name)+'">'
+        +'<div class="lib-label">'+escHtml(item.name)+'</div>'
+        +'<button class="rm-lib" aria-label="Delete '+escHtml(item.name)+' from library">×</button>';
+      el.querySelector('.rm-lib').addEventListener('click',function(e){
+        e.stopPropagation();
+        if(confirm('Delete "'+item.name+'" from your library?')){
+          deletePhotoFromDB(item.id,function(){
+            renderLibraryPage();
+            showToast('🗑 Photo removed');
+          });
+        }
+      });
+      grid.appendChild(el);
     });
-    grid.appendChild(el);
   });
 }
 
-// ── LIB PICKER (Ask tab inline) ───────────────────────────────────────────────
+// ── LIB PICKER — used by saved sets and library tab ──────────────────────────
 var selectedLibPhotos=[];
 
 function renderLibPicker(){
+  // Lib picker removed from Ask tab — no-op kept for compatibility
+  var area=document.getElementById('libPickerArea');
+  if(area)area.style.display='none';
+}
+
+function _oldRenderLibPicker_unused(){
   var lib=getLibrary();
   var area=document.getElementById('libPickerArea');
   var grid=document.getElementById('libPickerGrid');
@@ -882,6 +1007,7 @@ function buildCards(q,o,photos){
   document.getElementById('qText').textContent=question;
   document.getElementById('answerBanner').style.display='none';
   document.getElementById('resultsArea').style.display='block';
+  document.getElementById('typeAnswerBtn').style.display='flex';
   renderCards();
   if(settings.autoSpeak)speak(question,'speakQBtn');
   setTimeout(function(){document.getElementById('resultsArea').scrollIntoView({behavior:'smooth',block:'start'});},80);
@@ -930,10 +1056,11 @@ function resetAll(){
   uploadedPhotos=[];selectedLibPhotos=[];
   renderPhotoPreviews();renderLibPicker();
   document.getElementById('resultsArea').style.display='none';
+  if(document.getElementById('typeAnswerBtn'))document.getElementById('typeAnswerBtn').style.display='none';
   document.getElementById('errorBox').style.display='none';
   document.getElementById('micQStatus').textContent='Tap 🎤 to speak';
   document.getElementById('micQStatus').className='mic-status';
-  document.getElementById('micOStatus').textContent='Speak options — commas added automatically';
+  document.getElementById('micOStatus').textContent='Say "or" between each option to add commas automatically';
   document.getElementById('micOStatus').className='mic-status';
   window.scrollTo(0,0);
 }
@@ -1049,6 +1176,32 @@ function showToast(msg){
 // ── UTIL ──────────────────────────────────────────────────────────────────────
 function escHtml(s){if(!s)return'';return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
+
+// ── TYPE YOUR ANSWER ──────────────────────────────────────────────────────────
+function submitTypedAnswer(){
+  var val=document.getElementById('typeAnswerInput').value.trim();
+  if(!val){showToast('⚠️ Please type an answer first');return;}
+  closeModal('typeModal');
+  document.getElementById('typeAnswerInput').value='';
+  // Create a virtual card selection for the typed answer
+  var emoji=getEmoji(val);
+  var label=cap(val);
+  document.getElementById('ansVisual').innerHTML='<div class="ans-emoji">'+emoji+'</div>';
+  document.getElementById('ansChoice').textContent=label;
+  document.getElementById('answerBanner').style.display='flex';
+  document.getElementById('answerBanner').scrollIntoView({behavior:'smooth',block:'nearest'});
+  if(settings.autoSpeakAns)speak('I want '+label,'speakAnsBtn');
+  if(settings.saveHistory)saveHistory(currentQuestion,{label:label,emoji:emoji,photo:null});
+  var ann=document.getElementById('sr-announce');
+  if(ann)ann.textContent='Selected: '+label+'. I want '+label;
+}
+
+// Allow Enter key to submit typed answer
+document.addEventListener('DOMContentLoaded',function(){
+  var inp=document.getElementById('typeAnswerInput');
+  if(inp)inp.addEventListener('keydown',function(e){if(e.key==='Enter')submitTypedAnswer();});
+});
+
 // ── WIRE UP ───────────────────────────────────────────────────────────────────
 document.getElementById('goBtn').addEventListener('click',function(){buildCards();});
 document.getElementById('micQBtn').addEventListener('click',function(){startMic('q');});
@@ -1106,7 +1259,7 @@ document.getElementById('libFileInput').addEventListener('change',function(e){
   addPhotosToLibrary(files,function(){
     renderLibraryPage();
     renderLibPicker();
-    showToast('📷 '+count+' photo'+(count!==1?'s':'')+' saved to library');
+    showToast('📷 '+count+' photo'+(count!==1?'s':'')+' added to library');
   });
 });
 
@@ -1120,7 +1273,6 @@ document.getElementById('quickChips').addEventListener('click',function(e){
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 loadSettings();
-renderLibPicker();
 
 if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
 </script>
