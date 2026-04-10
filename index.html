@@ -140,9 +140,9 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 .history-ans{font-size:0.98rem;font-weight:800;color:var(--text);display:flex;align-items:center;gap:7px}
 .history-time{font-size:0.67rem;color:var(--text-muted);font-weight:500;margin-top:4px}
 .clear-history{background:none;border:1.5px solid var(--border);border-radius:8px;color:var(--text-muted);font-weight:700;font-size:0.74rem;padding:6px 12px;cursor:pointer;margin-bottom:12px}
-.overlay{position:fixed;inset:0;background:rgba(26,26,46,0.5);z-index:200;display:none;align-items:flex-end;justify-content:center;padding:0}
+.overlay{position:fixed;inset:0;background:rgba(26,26,46,0.5);z-index:600;display:none;align-items:flex-end;justify-content:center;padding:0}
 .overlay.visible{display:flex}
-.modal{background:#fff;border-radius:var(--radius-lg) var(--radius-lg) 0 0;padding:22px 20px calc(22px + var(--safe-bottom));width:100%;max-width:480px;box-shadow:0 -8px 40px rgba(45,127,249,0.18);animation:slideUp 0.25s ease}
+.modal{background:#fff;border-radius:var(--radius-lg) var(--radius-lg) 0 0;padding:22px 20px calc(22px + var(--safe-bottom));width:100%;max-width:480px;box-shadow:0 -8px 40px rgba(45,127,249,0.18);animation:slideUp 0.25s ease;position:relative;z-index:601}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .modal-handle{width:34px;height:4px;background:var(--border);border-radius:50px;margin:0 auto 16px}
 .modal-title{font-size:1.02rem;font-weight:900;color:var(--text);margin-bottom:5px}
@@ -712,7 +712,7 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
     <div class="logo">Oi<span>GO</span></div>
     <div class="tagline">Generate a Visual for your Question</div>
     <!-- Active child chip — shown when signed in with a profile selected -->
-    <div id="activeChildChip" style="display:none;margin-top:10px;display:none">
+    <div id="activeChildChip" style="display:none;margin-top:10px">
       <button onclick="openProfileSwitcher()" style="background:var(--primary-light);border:1.5px solid rgba(45,127,249,0.2);border-radius:50px;padding:5px 14px 5px 10px;font-family:inherit;font-size:0.75rem;font-weight:800;color:var(--primary);cursor:pointer;display:inline-flex;align-items:center;gap:6px">
         <span id="activeChildAvatar" style="width:20px;height:20px;border-radius:50%;background:var(--primary);color:#fff;font-size:0.6rem;font-weight:900;display:inline-flex;align-items:center;justify-content:center">?</span>
         <span id="activeChildName">Child</span>
@@ -909,6 +909,14 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
     <p style="font-size:0.72rem;font-weight:600;color:var(--text-muted);line-height:1.6;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
       ™ This app is trademarked by Brizuela Creative.
     </p>
+  </div>
+
+  <!-- Sign Out — only shown when signed in -->
+  <div id="signOutRow" style="display:none;margin-bottom:20px">
+    <button onclick="doSignOut()" style="width:100%;background:none;border:2px solid #FFBCBC;border-radius:var(--radius-md);padding:13px;font-family:inherit;font-size:0.9rem;font-weight:800;color:#C0392B;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign Out
+    </button>
   </div>
 </div>
 
@@ -1766,6 +1774,9 @@ loadSettings();
 
 if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
 
+// Handle Google redirect result on page load
+handleGoogleRedirect();
+
 // ═══════════════════════════════════════════════════════════════════
 // FIREBASE — OiGO Cloud Sync Layer
 // ═══════════════════════════════════════════════════════════════════
@@ -1931,13 +1942,27 @@ function doSignIn(){
   .catch(function(err){ showAuthErr(errEl, friendlyAuthError(err.code)); });
 }
 
-// ── GOOGLE SIGN IN ────────────────────────────────────────────────
+// ── GOOGLE SIGN IN ────────────────────────────────────────────────────────────
+// Uses redirect (not popup) — popup is blocked in mobile WebViews and iOS Safari
 function doGoogleSignIn(){
   var provider = new firebase.auth.GoogleAuthProvider();
-  fbAuth.signInWithPopup(provider)
+  provider.setCustomParameters({ prompt: 'select_account' });
+  try{ localStorage.setItem('oigo_google_redirect', '1'); }catch(e){}
+  fbAuth.signInWithRedirect(provider)
+  .catch(function(err){
+    try{ localStorage.removeItem('oigo_google_redirect'); }catch(e){}
+    showToast('⚠️ Could not start Google sign-in: ' + err.message);
+  });
+}
+
+// Handle the redirect result when the page reloads after Google sign-in
+function handleGoogleRedirect(){
+  if(!fbAuth) return;
+  fbAuth.getRedirectResult()
   .then(function(result){
+    try{ localStorage.removeItem('oigo_google_redirect'); }catch(e){}
+    if(!result || !result.user) return;
     var user = result.user;
-    // Create user doc if first time
     return fbDb.collection('users').doc(user.uid).get()
     .then(function(doc){
       if(!doc.exists){
@@ -1951,10 +1976,10 @@ function doGoogleSignIn(){
       }
     });
   })
-  .then(function(){ hideAllAuthScreens(); })
   .catch(function(err){
+    try{ localStorage.removeItem('oigo_google_redirect'); }catch(e){}
     if(err.code !== 'auth/popup-closed-by-user'){
-      showToast('⚠️ Google sign-in failed: ' + err.message);
+      console.warn('Google redirect error:', err.code, err.message);
     }
   });
 }
@@ -2550,6 +2575,8 @@ function updateSettingsAccountUI(){
   if(gba2) gba2.style.display = 'flex';
   var ghn = document.getElementById('guestHeaderNotice');
   if(ghn) ghn.style.display = 'block';
+  var sor2 = document.getElementById('signOutRow');
+  if(sor2) sor2.style.display = 'none';
     if(membersCard) membersCard.style.display = 'none';
     return;
   }
