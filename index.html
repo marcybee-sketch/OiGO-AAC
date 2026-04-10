@@ -9,6 +9,7 @@
 <meta name="theme-color" content="#2D7FF9">
 <title>OiGO</title>
 <link rel="manifest" href="manifest.json">
+
 <style>
 :root{
   --primary:#2D7FF9;--primary-light:#EBF2FF;--primary-dark:#1A6AE0;
@@ -314,9 +315,345 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
   background:var(--primary);
   border-radius:0 0 3px 3px;
 }
+
+/* ── FIREBASE AUTH & PROFILE SCREENS ── */
+.auth-screen{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;overflow-y:auto;padding:0 0 40px}
+.auth-inner{width:100%;max-width:420px;padding:40px 24px 24px}
+.auth-logo{text-align:center;margin-bottom:8px}
+.auth-logo .logo{font-size:2.4rem}
+.auth-tagline{text-align:center;font-size:0.78rem;color:var(--text-muted);font-weight:500;margin-bottom:32px;line-height:1.5}
+.auth-title{font-size:1.3rem;font-weight:900;color:var(--text);margin-bottom:6px;text-align:center}
+.auth-sub{font-size:0.82rem;color:var(--text-muted);font-weight:500;margin-bottom:24px;text-align:center;line-height:1.5}
+.auth-field{margin-bottom:14px}
+.auth-field label{display:block;font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-mid);margin-bottom:6px}
+.auth-field input{width:100%;border:2px solid var(--border);border-radius:var(--radius-sm);padding:13px 15px;font-family:inherit;font-size:0.97rem;font-weight:600;color:var(--text);outline:none;background:#FAFBFF;-webkit-appearance:none;transition:border-color 0.18s,box-shadow 0.18s;box-sizing:border-box}
+.auth-field input:focus{border-color:var(--primary);background:#fff;box-shadow:0 0 0 3px rgba(45,127,249,0.10)}
+.auth-error{background:#FFF0F0;border:1.5px solid #FFBCBC;border-radius:var(--radius-sm);padding:10px 14px;color:#C0392B;font-weight:700;font-size:0.82rem;margin-bottom:14px;display:none}
+.auth-divider{display:flex;align-items:center;gap:12px;margin:18px 0}
+.auth-divider span{font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;white-space:nowrap}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.btn-google{width:100%;background:#fff;border:2px solid var(--border);border-radius:var(--radius-sm);padding:13px;font-family:inherit;font-size:0.95rem;font-weight:700;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all 0.15s;box-shadow:var(--shadow-sm)}
+.btn-google:active{background:#F4F6FA}
+.btn-google svg{flex-shrink:0}
+.auth-switch{text-align:center;margin-top:18px;font-size:0.82rem;color:var(--text-muted);font-weight:500}
+.auth-switch a{color:var(--primary);font-weight:700;text-decoration:none;cursor:pointer}
+.auth-back{display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--text-muted);font-family:inherit;font-size:0.82rem;font-weight:700;cursor:pointer;padding:0;margin-bottom:24px}
+.auth-back svg{width:16px;height:16px;stroke:currentColor}
+
+/* ── WELCOME SCREEN ── */
+.welcome-modes{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+.welcome-btn{width:100%;border-radius:var(--radius-md);padding:18px 20px;font-family:inherit;cursor:pointer;text-align:left;display:flex;align-items:center;gap:14px;transition:all 0.15s;border:2px solid transparent}
+.welcome-btn-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0}
+.welcome-btn-text{flex:1}
+.welcome-btn-title{font-size:1rem;font-weight:800;color:var(--text);display:block}
+.welcome-btn-desc{font-size:0.75rem;font-weight:500;color:var(--text-muted);display:block;margin-top:2px;line-height:1.4}
+.welcome-btn.primary-mode{background:linear-gradient(135deg,var(--primary),#4A9BFF);border-color:var(--primary);box-shadow:0 4px 16px rgba(45,127,249,0.28)}
+.welcome-btn.primary-mode .welcome-btn-title{color:#fff}
+.welcome-btn.primary-mode .welcome-btn-desc{color:rgba(255,255,255,0.8)}
+.welcome-btn.primary-mode .welcome-btn-icon{background:rgba(255,255,255,0.2)}
+.welcome-btn.secondary-mode{background:var(--card);border-color:var(--border);box-shadow:var(--shadow-sm)}
+.welcome-btn.secondary-mode .welcome-btn-icon{background:var(--primary-light)}
+.welcome-btn.guest-mode{background:var(--card);border-color:var(--border);box-shadow:var(--shadow-sm)}
+.welcome-btn.guest-mode .welcome-btn-icon{background:#F4F6FA}
+
+/* ── CHILD SWITCHER / CLIENT LIST ── */
+.switcher-screen{position:fixed;inset:0;background:var(--bg);z-index:490;display:none;flex-direction:column;overflow-y:auto}
+.switcher-screen.active{display:flex}
+.switcher-header{padding:56px 20px 20px;text-align:center}
+.switcher-greeting{font-size:1rem;font-weight:600;color:var(--text-muted);margin-bottom:4px}
+.switcher-name{font-size:1.6rem;font-weight:900;color:var(--text)}
+.switcher-list{padding:0 16px;max-width:500px;margin:0 auto;width:100%}
+.switcher-item{background:var(--card);border:2px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:12px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.15s;box-shadow:var(--shadow-sm)}
+.switcher-item:active{border-color:var(--primary);background:var(--primary-light)}
+.switcher-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;color:#fff;font-weight:900}
+.switcher-info{flex:1;min-width:0}
+.switcher-child-name{font-size:1rem;font-weight:800;color:var(--text)}
+.switcher-family{font-size:0.75rem;font-weight:500;color:var(--text-muted);margin-top:2px}
+.switcher-badge{background:var(--primary-light);color:var(--primary);border-radius:8px;padding:3px 8px;font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;margin-top:4px;display:inline-block}
+.switcher-add{background:none;border:2px dashed var(--border);border-radius:var(--radius-lg);padding:16px 18px;width:100%;font-family:inherit;color:var(--text-muted);font-size:0.88rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:20px;transition:all 0.15s}
+.switcher-add:active{border-color:var(--primary);color:var(--primary)}
+
+/* ── ACCOUNT PANEL (in Settings) ── */
+.account-banner{background:linear-gradient(135deg,var(--primary),#22C580);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:14px;display:flex;align-items:center;gap:12px;cursor:pointer}
+.acct-avatar{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;font-weight:900;color:#fff}
+.acct-info{flex:1;min-width:0}
+.acct-name{font-size:0.95rem;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acct-email{font-size:0.72rem;color:rgba(255,255,255,0.8);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acct-mode{font-size:0.62rem;font-weight:800;background:rgba(255,255,255,0.2);color:#fff;border-radius:6px;padding:2px 7px;display:inline-block;margin-top:3px;text-transform:uppercase;letter-spacing:0.5px}
+.guest-banner{background:var(--card);border:2px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px}
+.guest-icon{width:40px;height:40px;border-radius:50%;background:#F0F3FA;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.guest-info{flex:1}
+.guest-label{font-size:0.87rem;font-weight:800;color:var(--text)}
+.guest-desc{font-size:0.72rem;color:var(--text-muted);font-weight:500;margin-top:2px}
+.member-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.member-item:last-child{border-bottom:none}
+.member-avatar{width:36px;height:36px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:900;color:var(--primary);flex-shrink:0}
+.member-info{flex:1;min-width:0}
+.member-name{font-size:0.85rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.member-role{font-size:0.68rem;font-weight:600;color:var(--text-muted)}
+.member-remove{background:none;border:none;color:#FF4444;font-size:0.75rem;font-weight:700;cursor:pointer;padding:4px 8px;border-radius:6px}
+.invite-role-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.invite-role-btn{background:var(--card);border:2px solid var(--border);border-radius:var(--radius-md);padding:12px 10px;font-family:inherit;cursor:pointer;text-align:center;transition:all 0.15s;-webkit-appearance:none}
+.invite-role-btn .role-emoji{font-size:1.4rem;display:block;margin-bottom:4px}
+.invite-role-btn .role-name{font-size:0.78rem;font-weight:800;color:var(--text);display:block}
+.invite-role-btn .role-desc{font-size:0.65rem;font-weight:500;color:var(--text-muted);display:block;margin-top:2px;line-height:1.3}
+.invite-role-btn.selected{border-color:var(--primary);background:var(--primary-light)}
+.invite-role-btn.selected .role-name{color:var(--primary)}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--secondary);display:inline-block;margin-right:4px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.sync-dot.offline{background:#FFA500;animation:none}
+
 </style>
 </head>
 <body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     WELCOME SCREEN
+═══════════════════════════════════════════════════════════════ -->
+<div id="welcomeScreen" class="auth-screen" style="display:none">
+  <div class="auth-inner">
+    <div class="auth-logo"><div class="logo">Oi<span>GO</span></div></div>
+    <div class="auth-tagline">Generate a Visual for your Question</div>
+    <div class="welcome-modes">
+      <button class="welcome-btn primary-mode" onclick="showAuthScreen('signup')">
+        <div class="welcome-btn-icon">✨</div>
+        <div class="welcome-btn-text">
+          <span class="welcome-btn-title">Create Account</span>
+          <span class="welcome-btn-desc">Sync across devices · Share with therapist · Save everything</span>
+        </div>
+      </button>
+      <button class="welcome-btn secondary-mode" onclick="showAuthScreen('signin')">
+        <div class="welcome-btn-icon" style="background:var(--primary-light)">🔑</div>
+        <div class="welcome-btn-text">
+          <span class="welcome-btn-title">Sign In</span>
+          <span class="welcome-btn-desc">Continue with your existing account</span>
+        </div>
+      </button>
+      <button class="welcome-btn guest-mode" onclick="continueAsGuest()">
+        <div class="welcome-btn-icon">👤</div>
+        <div class="welcome-btn-text">
+          <span class="welcome-btn-title">Continue as Guest</span>
+          <span class="welcome-btn-desc">Use on this device only · No account needed</span>
+        </div>
+      </button>
+    </div>
+    <p style="text-align:center;font-size:0.68rem;color:var(--text-muted);font-weight:500;margin-top:24px;line-height:1.6">
+      By continuing you agree to use this app in accordance with<br>its intended purpose for communication support.
+    </p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SIGN IN SCREEN
+═══════════════════════════════════════════════════════════════ -->
+<div id="signinScreen" class="auth-screen" style="display:none">
+  <div class="auth-inner">
+    <button class="auth-back" onclick="showAuthScreen('welcome')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Back
+    </button>
+    <div class="auth-logo"><div class="logo">Oi<span>GO</span></div></div>
+    <div class="auth-title" style="margin-top:16px">Welcome back</div>
+    <div class="auth-sub">Sign in to access your saved sets and logs</div>
+    <div class="auth-error" id="signinError"></div>
+    <div class="auth-field">
+      <label>Email</label>
+      <input type="email" id="signinEmail" placeholder="you@example.com" autocomplete="email" autocapitalize="off">
+    </div>
+    <div class="auth-field">
+      <label>Password</label>
+      <input type="password" id="signinPassword" placeholder="Your password" autocomplete="current-password">
+    </div>
+    <div style="text-align:right;margin-bottom:16px">
+      <a style="font-size:0.78rem;color:var(--primary);font-weight:700;cursor:pointer" onclick="showAuthScreen('reset')">Forgot password?</a>
+    </div>
+    <button class="btn-primary" onclick="doSignIn()">Sign In</button>
+    <div class="auth-divider"><span>or</span></div>
+    <button class="btn-google" onclick="doGoogleSignIn()">
+      <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Continue with Google
+    </button>
+    <div class="auth-switch">Don't have an account? <a onclick="showAuthScreen('signup')">Create one</a></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SIGN UP SCREEN
+═══════════════════════════════════════════════════════════════ -->
+<div id="signupScreen" class="auth-screen" style="display:none">
+  <div class="auth-inner">
+    <button class="auth-back" onclick="showAuthScreen('welcome')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Back
+    </button>
+    <div class="auth-logo"><div class="logo">Oi<span>GO</span></div></div>
+    <div class="auth-title" style="margin-top:16px">Create your account</div>
+    <div class="auth-sub">Set up OiGO for your family or practice</div>
+    <div class="auth-error" id="signupError"></div>
+    <div class="auth-field">
+      <label>Your Name</label>
+      <input type="text" id="signupName" placeholder="Maria Rodriguez" autocomplete="name">
+    </div>
+    <div class="auth-field">
+      <label>Email</label>
+      <input type="email" id="signupEmail" placeholder="you@example.com" autocomplete="email" autocapitalize="off">
+    </div>
+    <div class="auth-field">
+      <label>Password</label>
+      <input type="password" id="signupPassword" placeholder="At least 8 characters" autocomplete="new-password">
+    </div>
+    <div class="auth-field">
+      <label>I am a…</label>
+      <select id="signupRole" style="width:100%;border:2px solid var(--border);border-radius:var(--radius-sm);padding:13px 15px;font-family:inherit;font-size:0.97rem;font-weight:600;color:var(--text);background:#FAFBFF;-webkit-appearance:none;outline:none">
+        <option value="parent">👨‍👩‍👦  Parent / Guardian</option>
+        <option value="therapist">🩺  Therapist</option>
+        <option value="teacher">📚  Teacher</option>
+        <option value="caregiver">🤲  Caregiver</option>
+      </select>
+    </div>
+    <div id="childNameField" class="auth-field">
+      <label>Child's Name <span style="font-weight:500;color:var(--text-muted)">(you can add more later)</span></label>
+      <input type="text" id="signupChildName" placeholder="e.g. Marco" autocomplete="off">
+    </div>
+    <button class="btn-primary" onclick="doSignUp()">Create Account</button>
+    <div class="auth-divider"><span>or</span></div>
+    <button class="btn-google" onclick="doGoogleSignIn()">
+      <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Continue with Google
+    </button>
+    <div class="auth-switch">Already have an account? <a onclick="showAuthScreen('signin')">Sign in</a></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PASSWORD RESET SCREEN
+═══════════════════════════════════════════════════════════════ -->
+<div id="resetScreen" class="auth-screen" style="display:none">
+  <div class="auth-inner">
+    <button class="auth-back" onclick="showAuthScreen('signin')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Back
+    </button>
+    <div class="auth-logo"><div class="logo">Oi<span>GO</span></div></div>
+    <div class="auth-title" style="margin-top:16px">Reset Password</div>
+    <div class="auth-sub">Enter your email and we'll send a reset link</div>
+    <div class="auth-error" id="resetError"></div>
+    <div id="resetSuccess" style="display:none;background:var(--secondary-light);border:1.5px solid var(--secondary);border-radius:var(--radius-sm);padding:12px 14px;color:#155724;font-weight:700;font-size:0.84rem;margin-bottom:14px">
+      ✅ Reset email sent! Check your inbox.
+    </div>
+    <div class="auth-field">
+      <label>Email</label>
+      <input type="email" id="resetEmail" placeholder="you@example.com" autocomplete="email" autocapitalize="off">
+    </div>
+    <button class="btn-primary" onclick="doPasswordReset()">Send Reset Link</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PROFILE SWITCHER (child selector for parents / client list for others)
+═══════════════════════════════════════════════════════════════ -->
+<div id="switcherScreen" class="switcher-screen">
+  <div class="switcher-header">
+    <div class="switcher-greeting" id="switcherGreeting">Welcome back</div>
+    <div class="switcher-name" id="switcherName">Loading…</div>
+  </div>
+  <div class="switcher-list" id="switcherList">
+    <div style="text-align:center;padding:40px;color:var(--text-muted);font-size:0.85rem">Loading…</div>
+  </div>
+  <div style="padding:0 16px 20px;max-width:500px;margin:0 auto;width:100%">
+    <button class="btn-ghost" style="width:100%;padding:12px;font-size:0.82rem" onclick="doSignOut()">Sign Out</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     ADD CHILD MODAL
+═══════════════════════════════════════════════════════════════ -->
+<div class="overlay" id="addChildModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">👦 Add a Child Profile</div>
+    <div class="modal-sub">Each child has their own saved sets, logs, and team.</div>
+    <div class="auth-error" id="addChildError"></div>
+    <div class="auth-field">
+      <label>Child's Name</label>
+      <input type="text" id="addChildName" placeholder="e.g. Sofia" autocomplete="off">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:6px">
+      <button class="btn-secondary" style="flex:1" onclick="closeModal('addChildModal')">Cancel</button>
+      <button class="btn-primary" style="flex:2" onclick="doAddChild()">Add Child</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     INVITE MEMBER MODAL
+═══════════════════════════════════════════════════════════════ -->
+<div class="overlay" id="inviteModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Invite Someone</div>
+    <div class="modal-sub">They'll get an email with a link to join <span id="inviteChildName" style="font-weight:800;color:var(--text)"></span>'s OiGO.</div>
+    <div class="auth-error" id="inviteError"></div>
+    <div id="inviteSuccess" style="display:none;background:var(--secondary-light);border:1.5px solid var(--secondary);border-radius:var(--radius-sm);padding:12px 14px;color:#155724;font-weight:700;font-size:0.84rem;margin-bottom:14px">
+      ✅ Invite sent!
+    </div>
+    <div style="margin-bottom:12px">
+      <div class="field-label gray" style="margin-bottom:8px">Their role</div>
+      <div class="invite-role-grid">
+        <button class="invite-role-btn selected" data-role="parent" onclick="selectInviteRole(this)">
+          <span class="role-emoji">👨‍👩‍👦</span>
+          <span class="role-name">Parent</span>
+          <span class="role-desc">Full access, can invite others</span>
+        </button>
+        <button class="invite-role-btn" data-role="therapist" onclick="selectInviteRole(this)">
+          <span class="role-emoji">🩺</span>
+          <span class="role-name">Therapist</span>
+          <span class="role-desc">SLP, OT, ABA, etc.</span>
+        </button>
+        <button class="invite-role-btn" data-role="teacher" onclick="selectInviteRole(this)">
+          <span class="role-emoji">📚</span>
+          <span class="role-name">Teacher</span>
+          <span class="role-desc">School educator or aide</span>
+        </button>
+        <button class="invite-role-btn" data-role="caregiver" onclick="selectInviteRole(this)">
+          <span class="role-emoji">🤲</span>
+          <span class="role-name">Caregiver</span>
+          <span class="role-desc">Nanny, aide, family</span>
+        </button>
+      </div>
+    </div>
+    <div class="auth-field" id="specialtyField" style="display:none">
+      <label>Specialty <span style="font-weight:500;color:var(--text-muted)">(optional)</span></label>
+      <input type="text" id="inviteSpecialty" placeholder="e.g. Speech-Language Pathologist">
+    </div>
+    <div class="auth-field">
+      <label>Their Email</label>
+      <input type="email" id="inviteEmail" placeholder="therapist@clinic.com" autocapitalize="off" autocorrect="off">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:6px">
+      <button class="btn-secondary" style="flex:1" onclick="closeInviteModal()">Cancel</button>
+      <button class="btn-primary" style="flex:2" onclick="doSendInvite()">Send Invite</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     ACCEPT INVITE SCREEN
+═══════════════════════════════════════════════════════════════ -->
+<div id="acceptInviteScreen" class="auth-screen" style="display:none">
+  <div class="auth-inner">
+    <div class="auth-logo"><div class="logo">Oi<span>GO</span></div></div>
+    <div style="text-align:center;font-size:2.5rem;margin:16px 0 8px" id="acceptInviteEmoji">🩺</div>
+    <div class="auth-title" id="acceptInviteTitle">You've been invited!</div>
+    <div class="auth-sub" id="acceptInviteSub">Loading invite details…</div>
+    <div class="auth-error" id="acceptInviteError"></div>
+    <button class="btn-primary" id="acceptInviteBtn" onclick="doAcceptInvite()" style="display:none">Accept Invite</button>
+    <div style="height:12px"></div>
+    <button class="btn-secondary" style="width:100%" onclick="showAuthScreen('welcome')">Cancel</button>
+  </div>
+</div>
+
+
 <a href="#main-content" class="skip-link">Skip to main content</a>
 <div id="sr-announce" aria-live="assertive" aria-atomic="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)"></div>
 
@@ -456,7 +793,7 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 
 <!-- PAGE: SAVED -->
 <div class="page" id="page-saved">
-  <div class="page-title">Saved Sets</div>
+  <div class="page-title">Saved Sets <span id="syncIndicator" style="display:none"><span class="sync-dot"></span></span></div>
   <div class="page-sub">Your custom question sets</div>
   <div id="savedList"></div>
 </div>
@@ -464,7 +801,7 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 <!-- PAGE: LOG -->
 <div class="page" id="page-log">
   <div class="page-title">Response Log</div>
-  <div class="page-sub">Track answers for therapy notes</div>
+  <div class="page-sub" id="logPageSub">Track answers for therapy notes</div>
   <div id="historyControls" style="display:none">
     <button class="clear-history" onclick="clearHistory()">🗑 Clear all history</button>
   </div>
@@ -475,6 +812,32 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 <div class="page" id="page-settings">
   <div class="page-title">Settings</div>
   <div class="page-sub">Customize your experience</div>
+  <!-- Account / Guest banner -->
+  <div id="accountBanner" style="display:none" class="account-banner" onclick="openAccountPanel()">
+    <div class="acct-avatar" id="acctAvatar">?</div>
+    <div class="acct-info">
+      <div class="acct-name" id="acctName">Loading…</div>
+      <div class="acct-email" id="acctEmail"></div>
+      <div class="acct-mode" id="acctMode">Syncing</div>
+    </div>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+  </div>
+  <div id="guestBanner" class="guest-banner">
+    <div class="guest-icon">👤</div>
+    <div class="guest-info">
+      <div class="guest-label">Guest Mode</div>
+      <div class="guest-desc">Data saved on this device only</div>
+    </div>
+    <button class="btn-secondary" style="font-size:0.75rem;padding:7px 12px;flex-shrink:0" onclick="showAuthScreen('signup')">Create Account</button>
+  </div>
+
+  <!-- Members card (shown when signed in as parent/owner) -->
+  <div class="card" id="membersCard" style="display:none">
+    <div class="settings-section">Team for <span id="membersChildName" style="text-transform:none;letter-spacing:0;font-size:0.72rem;color:var(--text)"></span></div>
+    <div id="membersList"></div>
+    <button class="btn-ghost" style="width:100%;margin-top:10px;font-size:0.8rem;padding:9px" onclick="openInviteModal()">+ Invite Someone</button>
+  </div>
+
   <div class="card">
     <div class="settings-section">Display</div>
     <div class="toggle-row">
@@ -563,6 +926,11 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
   </button>
 </nav>
 
+<!-- Firebase SDK — loaded here so it's available when app script runs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 <script>
 // ── BRAND MAP ────────────────────────────────────────────────────────────────
 var BRAND_MAP={
@@ -1379,6 +1747,881 @@ document.getElementById('quickChips').addEventListener('click',function(e){
 loadSettings();
 
 if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
+
+// ═══════════════════════════════════════════════════════════════════
+// FIREBASE — OiGO Cloud Sync Layer
+// ═══════════════════════════════════════════════════════════════════
+
+// ── CONFIG ────────────────────────────────────────────────────────
+var firebaseConfig = {
+  apiKey:            "AIzaSyBBoT7sx3gg8sYANhuVF_VDbufQUuObxkM",
+  authDomain:        "oigo-42722.firebaseapp.com",
+  projectId:         "oigo-42722",
+  storageBucket:     "oigo-42722.firebasestorage.app",
+  messagingSenderId: "1027779411392",
+  appId:             "1:1027779411392:web:9b304771b8d60258711c25"
+};
+
+// Guard: ensure Firebase SDK loaded before initializing
+if(typeof firebase === 'undefined'){
+  console.error('OiGO: Firebase SDK failed to load. Check network connection.');
+  // Show a user-friendly message instead of crashing
+  document.addEventListener('DOMContentLoaded', function(){
+    var ws = document.getElementById('welcomeScreen');
+    if(ws){ ws.style.display = 'flex'; }
+    var errDiv = document.createElement('div');
+    errDiv.style.cssText = 'background:#FFF0F0;border:1.5px solid #FFBCBC;border-radius:12px;padding:12px 16px;color:#C0392B;font-weight:700;font-size:0.84rem;margin:16px;text-align:center';
+    errDiv.textContent = '⚠️ Could not connect to OiGO services. Please check your internet connection and reload.';
+    document.body.insertBefore(errDiv, document.body.firstChild);
+  });
+} else {
+  firebase.initializeApp(firebaseConfig);
+}
+var fbAuth    = (typeof firebase !== 'undefined') ? firebase.auth()      : null;
+var fbDb      = (typeof firebase !== 'undefined') ? firebase.firestore() : null;
+var fbStorage = (typeof firebase !== 'undefined') ? firebase.storage()   : null;
+
+// ── APP STATE ─────────────────────────────────────────────────────
+var currentUser       = null;   // Firebase Auth user object
+var currentUserDoc    = null;   // Firestore users/{uid} doc
+var currentProfile    = null;   // active childProfiles/{id} doc
+var currentProfileId  = null;
+var isGuestMode       = false;
+var savedSetListener  = null;   // Firestore real-time listener
+var logListener       = null;
+
+// Role metadata
+var ROLE_META = {
+  owner:     { emoji:'👨‍👩‍👦', label:'Owner',     color:'var(--primary)' },
+  parent:    { emoji:'👨‍👩‍👦', label:'Parent',    color:'var(--primary)' },
+  therapist: { emoji:'🩺',     label:'Therapist', color:'#6C63FF' },
+  teacher:   { emoji:'📚',     label:'Teacher',   color:'#FF8C00' },
+  caregiver: { emoji:'🤲',     label:'Caregiver', color:'var(--secondary)' },
+};
+
+// ── AUTH SCREENS ──────────────────────────────────────────────────
+var _authScreens = ['welcomeScreen','signinScreen','signupScreen','resetScreen','acceptInviteScreen'];
+
+function showAuthScreen(name){
+  _authScreens.forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.style.display = 'none';
+  });
+  if(name === 'welcome'){
+    document.getElementById('welcomeScreen').style.display = 'flex';
+  } else if(name === 'signin'){
+    document.getElementById('signinScreen').style.display = 'flex';
+    setTimeout(function(){ var el=document.getElementById('signinEmail'); if(el)el.focus(); },100);
+  } else if(name === 'signup'){
+    document.getElementById('signupScreen').style.display = 'flex';
+    setTimeout(function(){ var el=document.getElementById('signupName'); if(el)el.focus(); },100);
+  } else if(name === 'reset'){
+    document.getElementById('resetScreen').style.display = 'flex';
+  } else if(name === 'accept'){
+    document.getElementById('acceptInviteScreen').style.display = 'flex';
+  }
+}
+
+function hideAllAuthScreens(){
+  _authScreens.forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.style.display = 'none';
+  });
+}
+
+// Show/hide child name field based on role selection
+document.addEventListener('DOMContentLoaded', function(){
+  var roleSelect = document.getElementById('signupRole');
+  if(roleSelect){
+    roleSelect.addEventListener('change', function(){
+      var childField = document.getElementById('childNameField');
+      if(childField) childField.style.display = (this.value === 'parent') ? 'block' : 'none';
+    });
+  }
+  // Enter key on auth inputs
+  ['signinPassword'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.addEventListener('keydown', function(e){ if(e.key==='Enter') doSignIn(); });
+  });
+  // Check for invite token in URL
+  checkInviteToken();
+});
+
+// ── SIGN UP ───────────────────────────────────────────────────────
+function doSignUp(){
+  var name      = (document.getElementById('signupName').value||'').trim();
+  var email     = (document.getElementById('signupEmail').value||'').trim();
+  var password  = (document.getElementById('signupPassword').value||'').trim();
+  var role      = document.getElementById('signupRole').value;
+  var childName = (document.getElementById('signupChildName').value||'').trim();
+  var errEl     = document.getElementById('signupError');
+  errEl.style.display = 'none';
+
+  if(!name){ showAuthErr(errEl,'Please enter your name.'); return; }
+  if(!email){ showAuthErr(errEl,'Please enter your email.'); return; }
+  if(password.length < 8){ showAuthErr(errEl,'Password must be at least 8 characters.'); return; }
+  if(role === 'parent' && !childName){ showAuthErr(errEl,"Please enter your child's name."); return; }
+
+  fbAuth.createUserWithEmailAndPassword(email, password)
+  .then(function(cred){
+    var uid = cred.user.uid;
+    return cred.user.updateProfile({ displayName: name })
+    .then(function(){
+      // Create user document
+      return fbDb.collection('users').doc(uid).set({
+        uid: uid, name: name, email: email,
+        role: role, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    })
+    .then(function(){
+      // If parent, create first child profile
+      if(role === 'parent' && childName){
+        return createChildProfile(uid, name, email, childName);
+      }
+    });
+  })
+  .then(function(){ hideAllAuthScreens(); })
+  .catch(function(err){ showAuthErr(errEl, friendlyAuthError(err.code)); });
+}
+
+// ── SIGN IN ───────────────────────────────────────────────────────
+function doSignIn(){
+  var email    = (document.getElementById('signinEmail').value||'').trim();
+  var password = (document.getElementById('signinPassword').value||'').trim();
+  var errEl    = document.getElementById('signinError');
+  errEl.style.display = 'none';
+  if(!email || !password){ showAuthErr(errEl,'Please enter your email and password.'); return; }
+  fbAuth.signInWithEmailAndPassword(email, password)
+  .then(function(){ hideAllAuthScreens(); })
+  .catch(function(err){ showAuthErr(errEl, friendlyAuthError(err.code)); });
+}
+
+// ── GOOGLE SIGN IN ────────────────────────────────────────────────
+function doGoogleSignIn(){
+  var provider = new firebase.auth.GoogleAuthProvider();
+  fbAuth.signInWithPopup(provider)
+  .then(function(result){
+    var user = result.user;
+    // Create user doc if first time
+    return fbDb.collection('users').doc(user.uid).get()
+    .then(function(doc){
+      if(!doc.exists){
+        return fbDb.collection('users').doc(user.uid).set({
+          uid: user.uid,
+          name: user.displayName || 'User',
+          email: user.email,
+          role: 'parent',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+    });
+  })
+  .then(function(){ hideAllAuthScreens(); })
+  .catch(function(err){
+    if(err.code !== 'auth/popup-closed-by-user'){
+      showToast('⚠️ Google sign-in failed: ' + err.message);
+    }
+  });
+}
+
+// ── PASSWORD RESET ────────────────────────────────────────────────
+function doPasswordReset(){
+  var email = (document.getElementById('resetEmail').value||'').trim();
+  var errEl = document.getElementById('resetError');
+  var sucEl = document.getElementById('resetSuccess');
+  errEl.style.display = 'none'; sucEl.style.display = 'none';
+  if(!email){ showAuthErr(errEl,'Please enter your email address.'); return; }
+  fbAuth.sendPasswordResetEmail(email)
+  .then(function(){ sucEl.style.display = 'block'; })
+  .catch(function(err){ showAuthErr(errEl, friendlyAuthError(err.code)); });
+}
+
+// ── SIGN OUT ──────────────────────────────────────────────────────
+function doSignOut(){
+  if(savedSetListener){ savedSetListener(); savedSetListener = null; }
+  if(logListener){ logListener(); logListener = null; }
+  currentUser = null; currentUserDoc = null;
+  currentProfile = null; currentProfileId = null;
+  fbAuth.signOut().then(function(){
+    document.getElementById('switcherScreen').classList.remove('active');
+    showAuthScreen('welcome');
+  });
+}
+
+// ── CONTINUE AS GUEST ─────────────────────────────────────────────
+function continueAsGuest(){
+  isGuestMode = true;
+  hideAllAuthScreens();
+  updateSettingsAccountUI();
+  showPage('ask', document.getElementById('navAsk'));
+  localStorage.setItem('oigo_guest_mode', '1');
+}
+
+// ── AUTH STATE LISTENER ───────────────────────────────────────────
+// Only start auth listener if Firebase loaded successfully
+if(fbAuth){fbAuth.onAuthStateChanged(function(user){
+  if(user){
+    currentUser = user;
+    isGuestMode = false;
+    localStorage.removeItem('oigo_guest_mode');
+    // Load user doc
+    fbDb.collection('users').doc(user.uid).get()
+    .then(function(doc){
+      currentUserDoc = doc.exists ? doc.data() : { name: user.displayName||'User', email: user.email, role: 'parent' };
+      hideAllAuthScreens();
+      loadUserProfiles();
+    })
+    .catch(function(){ hideAllAuthScreens(); loadUserProfiles(); });
+  } else {
+    // Not signed in — check if guest or show welcome
+    var wasGuest = localStorage.getItem('oigo_guest_mode');
+    if(wasGuest){
+      isGuestMode = true;
+      hideAllAuthScreens();
+      updateSettingsAccountUI();
+    } else {
+      showAuthScreen('welcome');
+    }
+  }
+});
+} else {
+  // Firebase not available — force guest mode
+  continueAsGuest();
+}
+
+// ── LOAD USER PROFILES ────────────────────────────────────────────
+function loadUserProfiles(){
+  if(!currentUser) return;
+  var uid = currentUser.uid;
+  var role = (currentUserDoc && currentUserDoc.role) || 'parent';
+
+  // Find all childProfiles this user is a member of
+  fbDb.collection('childProfiles')
+  .where('memberIds', 'array-contains', uid)
+  .get()
+  .then(function(snap){
+    var profiles = [];
+    snap.forEach(function(doc){ profiles.push(Object.assign({id: doc.id}, doc.data())); });
+
+    if(profiles.length === 0 && (role === 'parent' || role === 'owner')){
+      // Parent with no profiles yet — show profile setup
+      showAddFirstChildPrompt();
+      return;
+    }
+
+    if(profiles.length === 1 && (role === 'parent' || role === 'owner')){
+      // Single child — go straight in
+      enterProfile(profiles[0]);
+      return;
+    }
+
+    // Multiple profiles or non-parent — show switcher
+    showSwitcher(profiles);
+  })
+  .catch(function(err){
+    console.warn('loadUserProfiles error:', err);
+    // Fallback gracefully — show switcher with empty state
+    showSwitcher([]);
+  });
+}
+
+// ── SHOW PROFILE SWITCHER ─────────────────────────────────────────
+function showSwitcher(profiles){
+  var screen = document.getElementById('switcherScreen');
+  var list   = document.getElementById('switcherList');
+  var role   = (currentUserDoc && currentUserDoc.role) || 'parent';
+  var name   = (currentUserDoc && currentUserDoc.name) || (currentUser && currentUser.displayName) || 'there';
+
+  document.getElementById('switcherGreeting').textContent =
+    (role === 'therapist' || role === 'teacher' || role === 'caregiver')
+      ? 'My Clients' : 'Hi, ' + name.split(' ')[0] + ' 👋';
+  document.getElementById('switcherName').textContent =
+    (role === 'therapist' || role === 'teacher' || role === 'caregiver')
+      ? 'Select a child to begin' : 'Which child?';
+
+  list.innerHTML = '';
+
+  if(profiles.length === 0){
+    list.innerHTML = '<div style="text-align:center;padding:30px 20px;color:var(--text-muted)"><div style="font-size:2rem;margin-bottom:8px">👦</div><div style="font-weight:700;font-size:0.9rem">No children yet</div><div style="font-size:0.78rem;margin-top:4px">Accept an invite to see clients here</div></div>';
+  }
+
+  profiles.forEach(function(profile){
+    var initials = (profile.childName||'?').substring(0,1).toUpperCase();
+    var myRole   = (profile.members && profile.members[currentUser.uid] && profile.members[currentUser.uid].role) || role;
+    var roleInfo = ROLE_META[myRole] || ROLE_META.parent;
+    var el = document.createElement('div');
+    el.className = 'switcher-item';
+    el.innerHTML =
+      '<div class="switcher-avatar">'+initials+'</div>'+
+      '<div class="switcher-info">'+
+        '<div class="switcher-child-name">'+escHtml(profile.childName||'Child')+'</div>'+
+        '<div class="switcher-family">'+escHtml((profile.ownerName||'Family'))+'</div>'+
+        '<div class="switcher-badge">'+roleInfo.emoji+' '+roleInfo.label+'</div>'+
+      '</div>'+
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>';
+    el.addEventListener('click', function(){ enterProfile(profile); });
+    list.appendChild(el);
+  });
+
+  // Add child button (parents only)
+  if(role === 'parent' || role === 'owner'){
+    var addBtn = document.createElement('button');
+    addBtn.className = 'switcher-add';
+    addBtn.innerHTML = '<span style="font-size:1.3rem">＋</span> Add another child';
+    addBtn.addEventListener('click', function(){ openModal('addChildModal'); });
+    list.appendChild(addBtn);
+  }
+
+  screen.classList.add('active');
+}
+
+// ── ENTER A CHILD PROFILE ─────────────────────────────────────────
+function enterProfile(profile){
+  currentProfile   = profile;
+  currentProfileId = profile.id;
+
+  // Hide switcher
+  document.getElementById('switcherScreen').classList.remove('active');
+
+  // Update settings UI
+  updateSettingsAccountUI();
+
+  // Start real-time listeners
+  startCloudListeners();
+
+  // Go to Ask tab
+  showPage('ask', document.getElementById('navAsk'));
+}
+
+// ── ADD FIRST CHILD PROMPT ────────────────────────────────────────
+function showAddFirstChildPrompt(){
+  openModal('addChildModal');
+}
+
+// ── ADD CHILD ─────────────────────────────────────────────────────
+function doAddChild(){
+  var name  = (document.getElementById('addChildName').value||'').trim();
+  var errEl = document.getElementById('addChildError');
+  errEl.style.display = 'none';
+  if(!name){ showAuthErr(errEl,"Please enter the child's name."); return; }
+  var uid       = currentUser.uid;
+  var userName  = (currentUserDoc && currentUserDoc.name) || currentUser.displayName || 'Parent';
+  var userEmail = currentUser.email;
+  createChildProfile(uid, userName, userEmail, name)
+  .then(function(profile){
+    closeModal('addChildModal');
+    document.getElementById('addChildName').value = '';
+    enterProfile(profile);
+  })
+  .catch(function(err){ showAuthErr(errEl, 'Could not create profile: ' + err.message); });
+}
+
+function createChildProfile(uid, userName, userEmail, childName){
+  var profileData = {
+    childName:   childName,
+    ownerName:   userName,
+    ownerId:     uid,
+    memberIds:   [uid],
+    members:     {},
+    createdAt:   firebase.firestore.FieldValue.serverTimestamp()
+  };
+  profileData.members[uid] = {
+    name: userName, email: userEmail,
+    role: 'owner', joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  return fbDb.collection('childProfiles').add(profileData)
+  .then(function(ref){
+    return Object.assign({ id: ref.id }, profileData);
+  });
+}
+
+// ── INVITE FLOW ───────────────────────────────────────────────────
+var _inviteRole = 'parent';
+
+function openInviteModal(){
+  if(!currentProfileId){ showToast('⚠️ No child profile selected'); return; }
+  var cn = document.getElementById('inviteChildName');
+  if(cn) cn.textContent = (currentProfile && currentProfile.childName) || 'your child';
+  document.getElementById('inviteEmail').value = '';
+  document.getElementById('inviteSpecialty').value = '';
+  document.getElementById('inviteError').style.display = 'none';
+  document.getElementById('inviteSuccess').style.display = 'none';
+  _inviteRole = 'parent';
+  document.querySelectorAll('.invite-role-btn').forEach(function(b){ b.classList.remove('selected'); });
+  var first = document.querySelector('.invite-role-btn[data-role="parent"]');
+  if(first) first.classList.add('selected');
+  document.getElementById('specialtyField').style.display = 'none';
+  openModal('inviteModal');
+}
+
+function closeInviteModal(){
+  closeModal('inviteModal');
+}
+
+function selectInviteRole(btn){
+  document.querySelectorAll('.invite-role-btn').forEach(function(b){ b.classList.remove('selected'); });
+  btn.classList.add('selected');
+  _inviteRole = btn.dataset.role;
+  document.getElementById('specialtyField').style.display =
+    (_inviteRole === 'therapist' || _inviteRole === 'teacher') ? 'block' : 'none';
+}
+
+function doSendInvite(){
+  var email     = (document.getElementById('inviteEmail').value||'').trim().toLowerCase();
+  var specialty = (document.getElementById('inviteSpecialty').value||'').trim();
+  var errEl     = document.getElementById('inviteError');
+  var sucEl     = document.getElementById('inviteSuccess');
+  errEl.style.display = 'none'; sucEl.style.display = 'none';
+  if(!email){ showAuthErr(errEl,'Please enter an email address.'); return; }
+  if(!currentProfileId){ showAuthErr(errEl,'No child profile selected.'); return; }
+  var inviterName = (currentUserDoc && currentUserDoc.name) || (currentUser && currentUser.displayName) || 'Your family';
+  var childName   = (currentProfile && currentProfile.childName) || 'your child';
+  fbDb.collection('invites').add({
+    profileId:       currentProfileId,
+    childName:       childName,
+    inviteeEmail:    email,
+    inviteeRole:     _inviteRole,
+    specialty:       specialty,
+    invitedByName:   inviterName,
+    invitedByUid:    currentUser.uid,
+    status:          'pending',
+    createdAt:       firebase.firestore.FieldValue.serverTimestamp(),
+    expiresAt:       new Date(Date.now() + 7*24*60*60*1000)
+  })
+  .then(function(){
+    sucEl.style.display = 'block';
+    document.getElementById('inviteEmail').value = '';
+    setTimeout(function(){ closeInviteModal(); }, 2000);
+  })
+  .catch(function(err){ showAuthErr(errEl,'Could not send invite: '+err.message); });
+}
+
+// ── ACCEPT INVITE ─────────────────────────────────────────────────
+var _pendingInviteId = null;
+
+function checkInviteToken(){
+  var params  = new URLSearchParams(window.location.search);
+  var inviteId = params.get('invite');
+  if(!inviteId) return;
+  _pendingInviteId = inviteId;
+  fbDb.collection('invites').doc(inviteId).get()
+  .then(function(doc){
+    if(!doc.exists){ showToast('⚠️ This invite has expired or is invalid.'); return; }
+    var inv = doc.data();
+    var roleInfo = ROLE_META[inv.inviteeRole] || ROLE_META.parent;
+    document.getElementById('acceptInviteEmoji').textContent = roleInfo.emoji;
+    document.getElementById('acceptInviteTitle').textContent = inv.invitedByName + ' invited you!';
+    document.getElementById('acceptInviteSub').textContent =
+      'Join ' + (inv.childName||"their child") + "'s OiGO as " + roleInfo.label;
+    document.getElementById('acceptInviteBtn').style.display = 'block';
+    // If already signed in, accept immediately
+    if(currentUser && currentUser.email && currentUser.email.toLowerCase() === inv.inviteeEmail){
+      doAcceptInvite();
+    } else {
+      showAuthScreen('accept');
+    }
+  })
+  .catch(function(){ showToast('⚠️ Could not load invite.'); });
+}
+
+function doAcceptInvite(){
+  if(!_pendingInviteId){ showToast('⚠️ No invite found.'); return; }
+  if(!currentUser){ showAuthScreen('signin'); return; }
+  var uid = currentUser.uid;
+  var userName  = (currentUserDoc && currentUserDoc.name) || currentUser.displayName || 'User';
+  var userEmail = currentUser.email;
+  var invRef = fbDb.collection('invites').doc(_pendingInviteId);
+  invRef.get()
+  .then(function(doc){
+    if(!doc.exists) throw new Error('Invite not found');
+    var inv = doc.data();
+    var profileRef = fbDb.collection('childProfiles').doc(inv.profileId);
+    // Add user to profile
+    var memberUpdate = { memberIds: firebase.firestore.FieldValue.arrayUnion(uid) };
+    memberUpdate['members.' + uid] = {
+      name: userName, email: userEmail,
+      role: inv.inviteeRole,
+      specialty: inv.specialty || '',
+      joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    return profileRef.update(memberUpdate)
+    .then(function(){ return invRef.delete(); })
+    .then(function(){ return profileRef.get(); })
+    .then(function(pdoc){ return Object.assign({ id: pdoc.id }, pdoc.data()); });
+  })
+  .then(function(profile){
+    _pendingInviteId = null;
+    // Clean URL
+    window.history.replaceState({}, '', window.location.pathname);
+    hideAllAuthScreens();
+    enterProfile(profile);
+    showToast('✅ Welcome to ' + (profile.childName||"the") + "'s OiGO!");
+  })
+  .catch(function(err){
+    showAuthErr(document.getElementById('acceptInviteError'), 'Could not accept invite: ' + err.message);
+  });
+}
+
+// ── REAL-TIME CLOUD LISTENERS ─────────────────────────────────────
+function startCloudListeners(){
+  if(!currentProfileId) return;
+  stopCloudListeners();
+
+  // Saved sets listener
+  savedSetListener = fbDb.collection('savedSets')
+  .where('profileId', '==', currentProfileId)
+  .orderBy('createdAt', 'desc')
+  .onSnapshot(function(snap){
+    var sets = [];
+    snap.forEach(function(doc){ sets.push(Object.assign({ id: doc.id }, doc.data())); });
+    _cloudSavedSets = sets;
+    if(document.getElementById('page-saved').classList.contains('active')) renderSavedSets();
+    var ind = document.getElementById('syncIndicator');
+    if(ind) ind.style.display = 'inline';
+  }, function(err){ console.warn('savedSets listener error:', err); });
+
+  // Log listener
+  logListener = fbDb.collection('logs')
+  .where('profileId', '==', currentProfileId)
+  .orderBy('createdAt', 'desc')
+  .limit(200)
+  .onSnapshot(function(snap){
+    var logs = [];
+    snap.forEach(function(doc){ logs.push(Object.assign({ id: doc.id }, doc.data())); });
+    _cloudLogs = logs;
+    if(document.getElementById('page-log').classList.contains('active')) renderHistory();
+  }, function(err){ console.warn('logs listener error:', err); });
+}
+
+function stopCloudListeners(){
+  if(savedSetListener){ savedSetListener(); savedSetListener = null; }
+  if(logListener){ logListener(); logListener = null; }
+}
+
+var _cloudSavedSets = null;
+var _cloudLogs      = null;
+
+// ── CLOUD SAVED SETS ──────────────────────────────────────────────
+function getSavedSets(){
+  // In cloud mode, return cloud data; in guest mode, use localStorage
+  if(!isGuestMode && currentProfileId && _cloudSavedSets !== null){
+    return _cloudSavedSets;
+  }
+  try{ return JSON.parse(localStorage.getItem('oigo_sets')||'[]'); }catch(e){ return []; }
+}
+
+function saveSets(sets){
+  // Guest mode — localStorage only
+  if(isGuestMode || !currentProfileId){
+    try{ localStorage.setItem('oigo_sets', JSON.stringify(sets)); }catch(e){}
+    return;
+  }
+  // Cloud mode — handled by confirmSave() individually
+}
+
+function confirmSave(){
+  var name = document.getElementById('saveNameInput').value.trim();
+  if(!name){ showToast('⚠️ Please enter a name'); return; }
+
+  if(isGuestMode || !currentProfileId){
+    // Guest: save to localStorage
+    var sets = getSavedSets();
+    sets.push({ id: Date.now(), name: name, q: pendingSave.q, o: pendingSave.o, photos: pendingSave.photos });
+    try{ localStorage.setItem('oigo_sets', JSON.stringify(sets)); }catch(e){}
+    closeModal('saveModal'); renderSavedSets(); showToast('✅ Saved!');
+    return;
+  }
+
+  // Cloud: save to Firestore (photos go to Storage first)
+  var photosData = pendingSave.photos || [];
+  uploadPhotosForSet(photosData)
+  .then(function(photoRefs){
+    return fbDb.collection('savedSets').add({
+      profileId:     currentProfileId,
+      name:          name,
+      question:      pendingSave.q,
+      options:       pendingSave.o,
+      photos:        photoRefs,
+      createdBy:     currentUser.uid,
+      createdByName: (currentUserDoc && currentUserDoc.name) || 'User',
+      createdAt:     firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt:     firebase.firestore.FieldValue.serverTimestamp()
+    });
+  })
+  .then(function(){
+    closeModal('saveModal');
+    showToast('✅ Saved to cloud!');
+  })
+  .catch(function(err){ showToast('⚠️ Save failed: '+err.message); });
+}
+
+function uploadPhotosForSet(photos){
+  if(!photos || !photos.length) return Promise.resolve([]);
+  var uploads = photos.map(function(p){
+    if(!p.data || p.data.startsWith('http')) return Promise.resolve(p); // already URL
+    var filename = 'photos/'+currentProfileId+'/'+Date.now()+'-'+Math.round(Math.random()*99999)+'.jpg';
+    var ref = fbStorage.ref(filename);
+    // Convert base64 to blob
+    var byteStr = atob(p.data.split(',')[1]);
+    var ab = new ArrayBuffer(byteStr.length);
+    var ia = new Uint8Array(ab);
+    for(var i=0;i<byteStr.length;i++) ia[i] = byteStr.charCodeAt(i);
+    var blob = new Blob([ab], {type:'image/jpeg'});
+    return ref.put(blob).then(function(){ return ref.getDownloadURL(); })
+    .then(function(url){ return { name: p.name, url: url }; });
+  });
+  return Promise.all(uploads);
+}
+
+// Cloud delete saved set
+function deleteCloudSet(setId){
+  if(!currentProfileId) return;
+  fbDb.collection('savedSets').doc(setId).delete()
+  .catch(function(err){ showToast('⚠️ Could not delete: '+err.message); });
+}
+
+// ── CLOUD RESPONSE LOG ────────────────────────────────────────────
+function saveHistory(question, card){
+  if(!settings.saveHistory) return;
+  var entry = {
+    question:       question,
+    answer:         card.label,
+    emoji:          card.photo ? '📷' : card.emoji,
+    hasPhoto:       !!card.photo,
+    ts:             Date.now()
+  };
+
+  if(isGuestMode || !currentProfileId){
+    // Guest: localStorage
+    try{
+      var h = JSON.parse(localStorage.getItem('oigo_history')||'[]');
+      h.unshift(entry);
+      if(h.length>200) h=h.slice(0,200);
+      localStorage.setItem('oigo_history', JSON.stringify(h));
+    }catch(e){}
+    return;
+  }
+
+  // Cloud: Firestore
+  var loggedByName = (currentUserDoc && currentUserDoc.name) || 'User';
+  var loggedByRole = (currentUserDoc && currentUserDoc.role) || 'parent';
+  // Add role label e.g. "Dr. James (Therapist)"
+  var roleLabel = ROLE_META[loggedByRole] ? ROLE_META[loggedByRole].label : '';
+  fbDb.collection('logs').add({
+    profileId:      currentProfileId,
+    question:       question,
+    answer:         card.label,
+    emoji:          card.photo ? '📷' : card.emoji,
+    hasPhoto:       !!card.photo,
+    loggedBy:       currentUser.uid,
+    loggedByName:   loggedByName + (roleLabel ? ' (' + roleLabel + ')' : ''),
+    loggedByRole:   loggedByRole,
+    sessionDate:    firebase.firestore.FieldValue.serverTimestamp(),
+    createdAt:      firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(function(err){ console.warn('Log save error:', err); });
+}
+
+// ── SETTINGS ACCOUNT UI ───────────────────────────────────────────
+function updateSettingsAccountUI(){
+  var accountBanner = document.getElementById('accountBanner');
+  var guestBanner   = document.getElementById('guestBanner');
+  var membersCard   = document.getElementById('membersCard');
+
+  if(isGuestMode || !currentUser){
+    if(accountBanner) accountBanner.style.display = 'none';
+    if(guestBanner) guestBanner.style.display = 'flex';
+    if(membersCard) membersCard.style.display = 'none';
+    return;
+  }
+
+  // Signed in
+  if(guestBanner) guestBanner.style.display = 'none';
+  if(accountBanner) {
+    accountBanner.style.display = 'flex';
+    var name  = (currentUserDoc && currentUserDoc.name) || currentUser.displayName || 'User';
+    var email = currentUser.email || '';
+    var role  = (currentUserDoc && currentUserDoc.role) || 'parent';
+    var initial = name.substring(0,1).toUpperCase();
+    document.getElementById('acctAvatar').textContent = initial;
+    document.getElementById('acctName').textContent   = name;
+    document.getElementById('acctEmail').textContent  = email;
+    document.getElementById('acctMode').textContent   = '☁️ Cloud Sync Active';
+  }
+
+  // Show members card for parents/owners with a profile
+  if(membersCard && currentProfileId){
+    var myRole = (currentProfile && currentProfile.members && currentProfile.members[currentUser.uid] && currentProfile.members[currentUser.uid].role) || 'owner';
+    if(myRole === 'owner' || myRole === 'parent'){
+      membersCard.style.display = 'block';
+      var cn = document.getElementById('membersChildName');
+      if(cn) cn.textContent = (currentProfile && currentProfile.childName) || '';
+      renderMembersList();
+    } else {
+      membersCard.style.display = 'none';
+    }
+  }
+}
+
+function openAccountPanel(){
+  showPage('settings', document.getElementById('navSettings'));
+}
+
+function renderMembersList(){
+  if(!currentProfile || !currentProfile.members) return;
+  var list = document.getElementById('membersList');
+  if(!list) return;
+  list.innerHTML = '';
+  var members = currentProfile.members;
+  Object.keys(members).forEach(function(uid){
+    var m = members[uid];
+    var roleInfo = ROLE_META[m.role] || ROLE_META.parent;
+    var initial  = (m.name||'?').substring(0,1).toUpperCase();
+    var isMe     = (currentUser && uid === currentUser.uid);
+    var myRole   = members[currentUser && currentUser.uid] && members[currentUser.uid].role;
+    var canRemove= (myRole === 'owner') && !isMe && m.role !== 'owner';
+    var el = document.createElement('div');
+    el.className = 'member-item';
+    el.innerHTML =
+      '<div class="member-avatar">'+escHtml(initial)+'</div>'+
+      '<div class="member-info">'+
+        '<div class="member-name">'+escHtml(m.name||(isMe?'You':'Member'))+(isMe?' (You)':'')+'</div>'+
+        '<div class="member-role">'+roleInfo.emoji+' '+roleInfo.label+(m.specialty?' · '+escHtml(m.specialty):'')+'</div>'+
+      '</div>'+
+      (canRemove ? '<button class="member-remove" data-uid="'+uid+'" onclick="removeMember(\''+uid+'\')">Remove</button>' : '');
+    list.appendChild(el);
+  });
+}
+
+function removeMember(uid){
+  if(!currentProfileId || !currentProfile) return;
+  var m = currentProfile.members[uid];
+  var name = (m && m.name) || 'this member';
+  if(!confirm('Remove '+name+' from '+currentProfile.childName+'\'s OiGO?')) return;
+  var update = { memberIds: firebase.firestore.FieldValue.arrayRemove(uid) };
+  update['members.'+uid] = firebase.firestore.FieldValue.delete();
+  fbDb.collection('childProfiles').doc(currentProfileId).update(update)
+  .then(function(){
+    delete currentProfile.members[uid];
+    renderMembersList();
+    showToast('✅ Member removed');
+  })
+  .catch(function(err){ showToast('⚠️ '+err.message); });
+}
+
+// ── OVERRIDE renderSavedSets FOR CLOUD ────────────────────────────
+// The original renderSavedSets in the code below still works for guests.
+// For cloud mode, we patch it to use _cloudSavedSets.
+
+var _origRenderSavedSets = null; // will be assigned after original loads
+
+function renderSavedSets(){
+  var list = document.getElementById('savedList');
+  var sets = getSavedSets(); // returns cloud or local depending on mode
+
+  if(!sets || !sets.length){
+    list.innerHTML='<div class="empty"><div class="empty-icon">💾</div><div class="empty-text">No saved sets yet</div><div class="empty-sub">Build a question, then tap 💾 Save</div></div>';
+    return;
+  }
+  list.innerHTML='';
+  sets.forEach(function(s){
+    var el=document.createElement('div');el.className='saved-set';
+    var photosHtml='';
+    var photoList = s.photos||[];
+    if(photoList.length){
+      photosHtml='<div class="saved-set-photos">';
+      photoList.slice(0,4).forEach(function(p){
+        var src = p.url||p.data||'';
+        if(src) photosHtml+='<img src="'+escHtml(src)+'" alt="" onerror="this.style.display=\'none\'">';
+      });
+      if(photoList.length>4) photosHtml+='<div class="more-badge">+'+( photoList.length-4)+'</div>';
+      photosHtml+='</div>';
+    }
+    var creatorLine = s.createdByName ? '<div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:6px">Added by '+escHtml(s.createdByName)+'</div>' : '';
+    el.innerHTML='<div class="saved-set-name">'+escHtml(s.name)+'</div>'
+      +'<div class="saved-set-q">'+escHtml(s.question||s.q||'')+'</div>'
+      +'<div class="saved-set-o">'+escHtml(s.options||s.o||'')+'</div>'
+      +creatorLine
+      +photosHtml
+      +'<div class="saved-set-actions">'
+      +'<button class="btn-primary" style="flex:1;padding:9px 12px;font-size:0.84rem">▶ Use</button>'
+      +'<button class="del-btn">🗑</button></div>';
+
+    el.querySelector('.btn-primary').addEventListener('click',function(e){
+      e.stopPropagation();
+      showPage('ask',document.getElementById('navAsk'));
+      document.getElementById('questionInput').value=s.question||s.q||'';
+      document.getElementById('optionsInput').value=s.options||s.o||'';
+      // Pre-populate photos — handle both URL (cloud) and base64 (local)
+      uploadedPhotos=(s.photos||[]).map(function(p){ return { data:p.url||p.data||'', name:p.name||'' }; }).filter(function(p){return p.data;});
+      selectedLibPhotos=[];
+      renderPhotoPreviews();
+      setTimeout(function(){buildCards(s.question||s.q,s.options||s.o,uploadedPhotos);},120);
+    });
+    el.querySelector('.del-btn').addEventListener('click',function(e){
+      e.stopPropagation();
+      if(confirm('Delete "'+s.name+'"?')){
+        if(!isGuestMode && currentProfileId && s.id && typeof s.id === 'string'){
+          deleteCloudSet(s.id);
+        } else {
+          var local=getSavedSets().filter(function(x){return x.id!==s.id;});
+          try{localStorage.setItem('oigo_sets',JSON.stringify(local));}catch(e){}
+          renderSavedSets();
+        }
+      }
+    });
+    list.appendChild(el);
+  });
+}
+
+// ── OVERRIDE renderHistory FOR CLOUD ──────────────────────────────
+function renderHistory(){
+  var list=document.getElementById('historyList');
+  var ctrl=document.getElementById('historyControls');
+
+  var entries = [];
+  if(!isGuestMode && currentProfileId && _cloudLogs !== null){
+    entries = _cloudLogs;
+  } else {
+    try{ entries = JSON.parse(localStorage.getItem('oigo_history')||'[]'); }catch(e){}
+  }
+
+  if(!entries.length){
+    ctrl.style.display='none';
+    list.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No responses logged yet</div><div class="empty-sub">Tap answer cards and they\'ll appear here</div></div>';
+    return;
+  }
+  ctrl.style.display='block';
+  list.innerHTML='';
+  entries.forEach(function(h){
+    var el=document.createElement('div');el.className='history-item';
+    var ts = h.createdAt ? (h.createdAt.toDate ? h.createdAt.toDate() : new Date(h.createdAt.seconds*1000)) : new Date(h.ts||Date.now());
+    var t=ts.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' at '+ts.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    var byLine = h.loggedByName ? '<div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px">By '+escHtml(h.loggedByName)+'</div>' : '';
+    el.innerHTML='<div class="history-q">'+escHtml(h.question||h.q||'')+'</div>'
+      +'<div class="history-ans"><span>'+(h.emoji||'💬')+'</span><span>'+escHtml(h.answer||h.label||'')+'</span></div>'
+      +byLine
+      +'<div class="history-time">'+t+'</div>';
+    list.appendChild(el);
+  });
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────
+function showAuthErr(el, msg){ el.textContent=msg; el.style.display='block'; }
+
+function friendlyAuthError(code){
+  var map = {
+    'auth/email-already-in-use':     'An account with this email already exists.',
+    'auth/invalid-email':            'Please enter a valid email address.',
+    'auth/weak-password':            'Password must be at least 8 characters.',
+    'auth/user-not-found':           'No account found with this email.',
+    'auth/wrong-password':           'Incorrect password. Try again.',
+    'auth/too-many-requests':        'Too many attempts. Please wait a moment.',
+    'auth/network-request-failed':   'Network error. Check your connection.',
+    'auth/invalid-credential':       'Incorrect email or password.',
+  };
+  return map[code] || 'Something went wrong. Please try again.';
+}
+
 </script>
 </body>
 </html>
