@@ -960,6 +960,10 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 <script>
+// ── STARTUP CLEANUP ──────────────────────────────────────────────────────────
+// Clear any stale flags that may be stuck in localStorage from previous sessions
+try{ localStorage.removeItem('oigo_google_redirect'); }catch(e){}
+
 // ── BRAND MAP ────────────────────────────────────────────────────────────────
 var BRAND_MAP={
   mcdonalds:"🍔","mcdonald's":"🍔","mcdonald":"🍔",
