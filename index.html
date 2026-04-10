@@ -332,9 +332,9 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 .auth-divider{display:flex;align-items:center;gap:12px;margin:18px 0}
 .auth-divider span{font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;white-space:nowrap}
 .auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border)}
-.btn-google{width:100%;background:#fff;border:2px solid var(--border);border-radius:var(--radius-sm);padding:13px;font-family:inherit;font-size:0.95rem;font-weight:700;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all 0.15s;box-shadow:var(--shadow-sm)}
-.btn-google:active{background:#F4F6FA}
-.btn-google svg{flex-shrink:0}
+
+
+
 .auth-switch{text-align:center;margin-top:18px;font-size:0.82rem;color:var(--text-muted);font-weight:500}
 .auth-switch a{color:var(--primary);font-weight:700;text-decoration:none;cursor:pointer}
 .auth-back{display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--text-muted);font-family:inherit;font-size:0.82rem;font-weight:700;cursor:pointer;padding:0;margin-bottom:24px}
@@ -468,11 +468,6 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
       <a style="font-size:0.78rem;color:var(--primary);font-weight:700;cursor:pointer" onclick="showAuthScreen('reset')">Forgot password?</a>
     </div>
     <button class="btn-primary" onclick="doSignIn()">Sign In</button>
-    <div class="auth-divider"><span>or</span></div>
-    <button class="btn-google" onclick="doGoogleSignIn()">
-      <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-      Continue with Google
-    </button>
     <div class="auth-switch">Don't have an account? <a onclick="showAuthScreen('signup')">Create one</a></div>
   </div>
 </div>
@@ -516,11 +511,6 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
       <input type="text" id="signupChildName" placeholder="e.g. Marco" autocomplete="off">
     </div>
     <button class="btn-primary" onclick="doSignUp()">Create Account</button>
-    <div class="auth-divider"><span>or</span></div>
-    <button class="btn-google" onclick="doGoogleSignIn()">
-      <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-      Continue with Google
-    </button>
     <div class="auth-switch">Already have an account? <a onclick="showAuthScreen('signin')">Sign in</a></div>
   </div>
 </div>
@@ -550,20 +540,13 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 </div>
 
 
-<!-- ══════════════════════════════════════════════════════════════
-     GOOGLE SIGN-IN LOADING SCREEN
-     Shown while Google redirect is being processed
-═══════════════════════════════════════════════════════════════ -->
-<div id="googleLoadingScreen" class="auth-screen" style="display:none">
-  <div class="auth-inner" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center">
-    <div class="logo" style="margin-bottom:8px">Oi<span>GO</span></div>
     <div style="font-size:2.5rem;margin:20px 0">
       <svg width="40" height="40" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
     </div>
     <div style="font-size:1rem;font-weight:700;color:var(--text);margin-bottom:8px">Signing in with Google…</div>
     <div style="font-size:0.8rem;color:var(--text-muted);font-weight:500">Please wait a moment</div>
     <div style="margin-top:32px">
-      <button onclick="cancelGoogleSignIn()" style="background:none;border:none;font-family:inherit;font-size:0.8rem;color:var(--text-muted);cursor:pointer;text-decoration:underline">Cancel</button>
+      
     </div>
   </div>
 </div>
@@ -1793,8 +1776,6 @@ loadSettings();
 
 if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
 
-// Handle Google redirect result on page load
-handleGoogleRedirect();
 
 // ═══════════════════════════════════════════════════════════════════
 // FIREBASE — OiGO Cloud Sync Layer
@@ -1848,21 +1829,8 @@ var ROLE_META = {
 };
 
 // ── AUTH SCREENS ──────────────────────────────────────────────────
-var _authScreens = ['welcomeScreen','signinScreen','signupScreen','resetScreen','acceptInviteScreen','googleLoadingScreen'];
+var _authScreens = ['welcomeScreen','signinScreen','signupScreen','resetScreen','acceptInviteScreen'];
 
-// If a Google redirect is in progress, show loading screen immediately
-// This MUST run before onAuthStateChanged to prevent the welcome screen flash
-(function(){
-  try{
-    if(localStorage.getItem('oigo_google_redirect')){
-      // Hide body until Firebase is ready to prevent flash
-      document.addEventListener('DOMContentLoaded', function(){
-        var el = document.getElementById('googleLoadingScreen');
-        if(el) el.style.display = 'flex';
-      });
-    }
-  }catch(e){}
-})();
 
 function showAuthScreen(name){
   _authScreens.forEach(function(id){
@@ -1984,30 +1952,7 @@ function doSignIn(){
   });
 }
 
-// ── GOOGLE SIGN IN ────────────────────────────────────────────────────────────
-// Uses signInWithRedirect — popup is blocked in mobile WebViews and iOS Safari.
-// Firebase automatically signs the user in after the redirect and fires
-// onAuthStateChanged with the user. We do NOT use getRedirectResult() because
-// it returns null on GitHub Pages when the URL changes during redirect.
-function doGoogleSignIn(){
-  if(!fbAuth){ showToast('⚠️ Firebase not available'); return; }
-  var provider = new firebase.auth.GoogleAuthProvider();
-  provider.setCustomParameters({ prompt: 'select_account' });
-  try{ localStorage.setItem('oigo_google_redirect', '1'); }catch(e){}
-  fbAuth.signInWithRedirect(provider).catch(function(err){
-    try{ localStorage.removeItem('oigo_google_redirect'); }catch(e){}
-    showToast('⚠️ Could not start Google sign-in: ' + err.message);
-  });
-}
-
-// No-op — kept for compatibility, sign-in handled by onAuthStateChanged
-function handleGoogleRedirect(){ }
-
-function cancelGoogleSignIn(){
-  try{ localStorage.removeItem('oigo_google_redirect'); }catch(e){}
-  hideAllAuthScreens();
-  showAuthScreen('signin');
-}
+// Google sign-in removed
 
 // ── PASSWORD RESET ────────────────────────────────────────────────
 function doPasswordReset(){
@@ -2056,7 +2001,6 @@ if(fbAuth){fbAuth.onAuthStateChanged(function(user){
     currentUser = user;
     isGuestMode = false;
     localStorage.removeItem('oigo_guest_mode');
-    try{ localStorage.removeItem('oigo_google_redirect'); }catch(e){}
     var ghn = document.getElementById('guestHeaderNotice');
     if(ghn) ghn.style.display = 'none';
 
@@ -2096,17 +2040,6 @@ if(fbAuth){fbAuth.onAuthStateChanged(function(user){
     _authHandling = false;
     currentUser = null;
     currentUserDoc = null;
-
-    // If Google redirect is in progress, don't show welcome screen —
-    // Firebase will sign the user in automatically and onAuthStateChanged
-    // will fire again with the authenticated user
-    try{
-      if(localStorage.getItem('oigo_google_redirect')){
-        var loadingEl = document.getElementById('googleLoadingScreen');
-        if(loadingEl) loadingEl.style.display = 'flex';
-        return; // wait for onAuthStateChanged to fire with signed-in user
-      }
-    }catch(e){}
 
     var wasGuest = localStorage.getItem('oigo_guest_mode');
     if(wasGuest){
