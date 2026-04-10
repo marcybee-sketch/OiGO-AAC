@@ -711,6 +711,11 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
   <div class="app-header" role="banner">
     <div class="logo">Oi<span>GO</span></div>
     <div class="tagline">Generate a Visual for your Question</div>
+    <div id="guestHeaderNotice" style="display:none;margin-top:8px">
+      <button style="background:none;border:1px solid var(--border);border-radius:50px;padding:4px 14px;font-family:inherit;font-size:0.68rem;font-weight:700;color:var(--text-muted);cursor:pointer" onclick="showAuthScreen('welcome')">
+        👤 Guest Mode — Tap to sign in
+      </button>
+    </div>
   </div>
 
   <div class="card">
@@ -828,7 +833,10 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
       <div class="guest-label">Guest Mode</div>
       <div class="guest-desc">Data saved on this device only</div>
     </div>
-    <button class="btn-secondary" style="font-size:0.75rem;padding:7px 12px;flex-shrink:0" onclick="showAuthScreen('signup')">Create Account</button>
+  </div>
+  <div id="guestBannerActions" style="display:flex;gap:8px;margin-bottom:14px">
+    <button class="btn-secondary" style="flex:1;font-size:0.8rem;padding:9px 10px" onclick="showAuthScreen('signin')">Sign In</button>
+    <button class="btn-primary" style="flex:2;font-size:0.8rem;padding:9px 10px" onclick="showAuthScreen('signup')">Create Account</button>
   </div>
 
   <!-- Members card (shown when signed in as parent/owner) -->
@@ -873,14 +881,7 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
       <label class="toggle"><input type="checkbox" id="settingHistory" checked onchange="saveSetting('saveHistory',this.checked)" aria-label="Save response history for therapy review"><span class="toggle-slider"></span></label>
     </div>
   </div>
-  <div class="card">
-    <div class="settings-section">Install as App</div>
-    <div class="steps" style="margin-bottom:0">
-      <div class="step-row"><div class="step-num">1</div><div class="step-text">Open in <b>Safari</b> on iPhone</div></div>
-      <div class="step-row"><div class="step-num">2</div><div class="step-text">Tap the <b>Share button</b> (box with arrow)</div></div>
-      <div class="step-row"><div class="step-num">3</div><div class="step-text">Tap <b>"Add to Home Screen"</b> → <b>Add</b></div></div>
-    </div>
-  </div>
+
   <div class="card">
     <div class="settings-section">About</div>
     <p style="font-size:0.8rem;font-weight:500;color:var(--text-muted);line-height:1.65">
@@ -2430,12 +2431,20 @@ function updateSettingsAccountUI(){
   if(isGuestMode || !currentUser){
     if(accountBanner) accountBanner.style.display = 'none';
     if(guestBanner) guestBanner.style.display = 'flex';
+  var gba2 = document.getElementById('guestBannerActions');
+  if(gba2) gba2.style.display = 'flex';
+  var ghn = document.getElementById('guestHeaderNotice');
+  if(ghn) ghn.style.display = 'block';
     if(membersCard) membersCard.style.display = 'none';
     return;
   }
 
   // Signed in
   if(guestBanner) guestBanner.style.display = 'none';
+  var gba = document.getElementById('guestBannerActions');
+  if(gba) gba.style.display = 'none';
+  var ghn2 = document.getElementById('guestHeaderNotice');
+  if(ghn2) ghn2.style.display = 'none';
   if(accountBanner) {
     accountBanner.style.display = 'flex';
     var name  = (currentUserDoc && currentUserDoc.name) || currentUser.displayName || 'User';
