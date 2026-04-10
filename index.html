@@ -1935,11 +1935,20 @@ function doSignIn(){
   var email    = (document.getElementById('signinEmail').value||'').trim();
   var password = (document.getElementById('signinPassword').value||'').trim();
   var errEl    = document.getElementById('signinError');
+  var btn      = document.querySelector('#signinScreen .btn-primary');
   errEl.style.display = 'none';
   if(!email || !password){ showAuthErr(errEl,'Please enter your email and password.'); return; }
+  // Disable button and show loading state
+  if(btn){ btn.textContent = 'Signing in…'; btn.disabled = true; }
   fbAuth.signInWithEmailAndPassword(email, password)
-  .then(function(){ hideAllAuthScreens(); })
-  .catch(function(err){ showAuthErr(errEl, friendlyAuthError(err.code)); });
+  .then(function(){
+    // onAuthStateChanged will handle the rest — don't call hideAllAuthScreens here
+    // just keep the loading state until the listener fires
+  })
+  .catch(function(err){
+    if(btn){ btn.textContent = 'Sign In'; btn.disabled = false; }
+    showAuthErr(errEl, friendlyAuthError(err.code));
+  });
 }
 
 // ── GOOGLE SIGN IN ────────────────────────────────────────────────────────────
@@ -2017,48 +2026,74 @@ function continueAsGuest(){
   localStorage.setItem('oigo_guest_mode', '1');
 }
 
-// ── AUTH STATE LISTENER ───────────────────────────────────────────
-// Only start auth listener if Firebase loaded successfully
+// ── AUTH STATE LISTENER ───────────────────────────────────────
+var _authHandling = false;
+
 if(fbAuth){fbAuth.onAuthStateChanged(function(user){
   if(user){
-    // If doSignUp() already handled the profile entry, don't re-run loadUserProfiles
-    // _signupInProgress flag is set by doSignUp and cleared after enterProfile
+    // doSignUp already called enterProfile directly
     if(window._signupHandled){ window._signupHandled = false; return; }
+    // Prevent double-execution during token refresh
+    if(_authHandling && currentUser && currentUser.uid === user.uid) return;
+    _authHandling = true;
 
     currentUser = user;
     isGuestMode = false;
     localStorage.removeItem('oigo_guest_mode');
-    // Load user doc — use cached currentUserDoc if already set by doSignUp
+    var ghn = document.getElementById('guestHeaderNotice');
+    if(ghn) ghn.style.display = 'none';
+
+    // Use cached doc if already set by doSignUp
     if(currentUserDoc && currentUserDoc.uid === user.uid){
       hideAllAuthScreens();
+      _authHandling = false;
       loadUserProfiles();
       return;
     }
+
     fbDb.collection('users').doc(user.uid).get()
     .then(function(doc){
-      currentUserDoc = doc.exists ? doc.data() : { name: user.displayName||'User', email: user.email, role: 'parent' };
+      if(doc.exists){
+        currentUserDoc = doc.data();
+      } else {
+        currentUserDoc = { uid: user.uid, name: user.displayName||'User', email: user.email||'', role: 'parent' };
+        fbDb.collection('users').doc(user.uid).set(Object.assign({
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, currentUserDoc)).catch(function(){});
+      }
       hideAllAuthScreens();
+      _authHandling = false;
+      var btn = document.querySelector('#signinScreen .btn-primary');
+      if(btn){ btn.textContent = 'Sign In'; btn.disabled = false; }
       loadUserProfiles();
     })
-    .catch(function(){
-      currentUserDoc = { name: user.displayName||'User', email: user.email, role: 'parent' };
+    .catch(function(err){
+      console.warn('OiGO: user doc error:', err.message);
+      currentUserDoc = { uid: user.uid, name: user.displayName||'User', email: user.email||'', role: 'parent' };
       hideAllAuthScreens();
+      _authHandling = false;
       loadUserProfiles();
     });
+
   } else {
-    // Not signed in — check if guest or show welcome
+    _authHandling = false;
+    currentUser = null;
+    currentUserDoc = null;
     var wasGuest = localStorage.getItem('oigo_guest_mode');
     if(wasGuest){
       isGuestMode = true;
       hideAllAuthScreens();
       updateSettingsAccountUI();
     } else {
-      showAuthScreen('welcome');
+      var anyVisible = _authScreens.some(function(id){
+        var el = document.getElementById(id);
+        return el && el.style.display !== 'none';
+      });
+      if(!anyVisible) showAuthScreen('welcome');
     }
   }
 });
 } else {
-  // Firebase not available — force guest mode
   continueAsGuest();
 }
 
@@ -2118,8 +2153,15 @@ function loadUserProfiles(){
     });
 
   }).catch(function(err){
-    console.warn('loadUserProfiles error:', err.message);
-    showSwitcher([]);
+    console.warn('OiGO loadUserProfiles error:', err.message, err.code);
+    // If it's a permissions error, the Firestore rules may need updating
+    // Show empty switcher for parents (they can add a child), welcome for others
+    var role = (currentUserDoc && currentUserDoc.role) || 'parent';
+    if(role === 'parent' || role === 'owner'){
+      showAddFirstChildPrompt();
+    } else {
+      showSwitcher([]);
+    }
   });
 }
 
