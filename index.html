@@ -711,6 +711,14 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
   <div class="app-header" role="banner">
     <div class="logo">Oi<span>GO</span></div>
     <div class="tagline">Generate a Visual for your Question</div>
+    <!-- Active child chip — shown when signed in with a profile selected -->
+    <div id="activeChildChip" style="display:none;margin-top:10px;display:none">
+      <button onclick="openProfileSwitcher()" style="background:var(--primary-light);border:1.5px solid rgba(45,127,249,0.2);border-radius:50px;padding:5px 14px 5px 10px;font-family:inherit;font-size:0.75rem;font-weight:800;color:var(--primary);cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+        <span id="activeChildAvatar" style="width:20px;height:20px;border-radius:50%;background:var(--primary);color:#fff;font-size:0.6rem;font-weight:900;display:inline-flex;align-items:center;justify-content:center">?</span>
+        <span id="activeChildName">Child</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+    </div>
     <div id="guestHeaderNotice" style="display:none;margin-top:8px">
       <button style="background:none;border:1px solid var(--border);border-radius:50px;padding:4px 14px;font-family:inherit;font-size:0.68rem;font-weight:700;color:var(--text-muted);cursor:pointer" onclick="showAuthScreen('welcome')">
         👤 Guest Mode — Tap to sign in
@@ -837,6 +845,15 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
   <div id="guestBannerActions" style="display:flex;gap:8px;margin-bottom:14px">
     <button class="btn-secondary" style="flex:1;font-size:0.8rem;padding:9px 10px" onclick="showAuthScreen('signin')">Sign In</button>
     <button class="btn-primary" style="flex:2;font-size:0.8rem;padding:9px 10px" onclick="showAuthScreen('signup')">Create Account</button>
+  </div>
+
+  <!-- Switch profile button — shown when signed in -->
+  <div id="switchProfileRow" style="display:none;margin-bottom:14px">
+    <button onclick="openProfileSwitcher()" style="width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-md);padding:13px 16px;font-family:inherit;font-size:0.88rem;font-weight:700;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow-sm)">
+      <span style="font-size:1.2rem">🔄</span>
+      <span id="switchProfileLabel">Switch Child</span>
+      <svg style="margin-left:auto" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+    </button>
   </div>
 
   <!-- Members card (shown when signed in as parent/owner) -->
@@ -1863,26 +1880,43 @@ function doSignUp(){
   if(password.length < 8){ showAuthErr(errEl,'Password must be at least 8 characters.'); return; }
   if(role === 'parent' && !childName){ showAuthErr(errEl,"Please enter your child's name."); return; }
 
+  var _uid, _newProfile;
+
   fbAuth.createUserWithEmailAndPassword(email, password)
   .then(function(cred){
-    var uid = cred.user.uid;
-    return cred.user.updateProfile({ displayName: name })
-    .then(function(){
-      // Create user document
-      return fbDb.collection('users').doc(uid).set({
-        uid: uid, name: name, email: email,
-        role: role, createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    })
-    .then(function(){
-      // If parent, create first child profile
-      if(role === 'parent' && childName){
-        return createChildProfile(uid, name, email, childName);
-      }
+    _uid = cred.user.uid;
+    // Set display name on Auth profile
+    return cred.user.updateProfile({ displayName: name });
+  })
+  .then(function(){
+    // Write user document to Firestore
+    return fbDb.collection('users').doc(_uid).set({
+      uid: _uid, name: name, email: email,
+      role: role, createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
   })
-  .then(function(){ hideAllAuthScreens(); })
-  .catch(function(err){ showAuthErr(errEl, friendlyAuthError(err.code)); });
+  .then(function(){
+    // Set currentUserDoc immediately so loadUserProfiles() has the right role
+    currentUserDoc = { uid: _uid, name: name, email: email, role: role };
+    // If parent, create the child profile right now
+    if(role === 'parent' && childName){
+      return createChildProfile(_uid, name, email, childName);
+    }
+    return null;
+  })
+  .then(function(profile){
+    hideAllAuthScreens();
+    if(profile){
+      // Parent: go straight into the child profile — no switcher needed
+      _newProfile = profile;
+      window._signupHandled = true;  // prevent onAuthStateChanged from re-running
+      enterProfile(profile);
+    }
+    // Non-parent: onAuthStateChanged will handle loadUserProfiles()
+  })
+  .catch(function(err){
+    showAuthErr(errEl, friendlyAuthError(err.code));
+  });
 }
 
 // ── SIGN IN ───────────────────────────────────────────────────────
@@ -1962,17 +1996,30 @@ function continueAsGuest(){
 // Only start auth listener if Firebase loaded successfully
 if(fbAuth){fbAuth.onAuthStateChanged(function(user){
   if(user){
+    // If doSignUp() already handled the profile entry, don't re-run loadUserProfiles
+    // _signupInProgress flag is set by doSignUp and cleared after enterProfile
+    if(window._signupHandled){ window._signupHandled = false; return; }
+
     currentUser = user;
     isGuestMode = false;
     localStorage.removeItem('oigo_guest_mode');
-    // Load user doc
+    // Load user doc — use cached currentUserDoc if already set by doSignUp
+    if(currentUserDoc && currentUserDoc.uid === user.uid){
+      hideAllAuthScreens();
+      loadUserProfiles();
+      return;
+    }
     fbDb.collection('users').doc(user.uid).get()
     .then(function(doc){
       currentUserDoc = doc.exists ? doc.data() : { name: user.displayName||'User', email: user.email, role: 'parent' };
       hideAllAuthScreens();
       loadUserProfiles();
     })
-    .catch(function(){ hideAllAuthScreens(); loadUserProfiles(); });
+    .catch(function(){
+      currentUserDoc = { name: user.displayName||'User', email: user.email, role: 'parent' };
+      hideAllAuthScreens();
+      loadUserProfiles();
+    });
   } else {
     // Not signed in — check if guest or show welcome
     var wasGuest = localStorage.getItem('oigo_guest_mode');
@@ -1993,35 +2040,60 @@ if(fbAuth){fbAuth.onAuthStateChanged(function(user){
 // ── LOAD USER PROFILES ────────────────────────────────────────────
 function loadUserProfiles(){
   if(!currentUser) return;
-  var uid = currentUser.uid;
+  var uid  = currentUser.uid;
   var role = (currentUserDoc && currentUserDoc.role) || 'parent';
 
-  // Find all childProfiles this user is a member of
-  fbDb.collection('childProfiles')
-  .where('memberIds', 'array-contains', uid)
-  .get()
-  .then(function(snap){
+  // Strategy: query by ownerId (no index needed, works immediately after creation)
+  // For invited members, also check memberIds array (requires index — handled gracefully)
+  var ownerQuery = fbDb.collection('childProfiles')
+    .where('ownerId', '==', uid)
+    .get();
+
+  ownerQuery.then(function(snap){
     var profiles = [];
     snap.forEach(function(doc){ profiles.push(Object.assign({id: doc.id}, doc.data())); });
 
     if(profiles.length === 0 && (role === 'parent' || role === 'owner')){
-      // Parent with no profiles yet — show profile setup
+      // Parent with no profiles yet — show add child modal
       showAddFirstChildPrompt();
       return;
     }
 
     if(profiles.length === 1 && (role === 'parent' || role === 'owner')){
-      // Single child — go straight in
+      // Single child — enter directly, no switcher
       enterProfile(profiles[0]);
       return;
     }
 
-    // Multiple profiles or non-parent — show switcher
-    showSwitcher(profiles);
-  })
-  .catch(function(err){
-    console.warn('loadUserProfiles error:', err);
-    // Fallback gracefully — show switcher with empty state
+    if(profiles.length > 1){
+      // Multiple children — show switcher
+      showSwitcher(profiles);
+      return;
+    }
+
+    // Non-parent (therapist/teacher/caregiver) — query memberIds
+    // This query requires a Firestore index. If it fails, show empty switcher.
+    fbDb.collection('childProfiles')
+    .where('memberIds', 'array-contains', uid)
+    .get()
+    .then(function(snap2){
+      var invited = [];
+      snap2.forEach(function(doc){ invited.push(Object.assign({id: doc.id}, doc.data())); });
+      if(invited.length === 0){
+        showSwitcher([]);
+      } else if(invited.length === 1){
+        enterProfile(invited[0]);
+      } else {
+        showSwitcher(invited);
+      }
+    })
+    .catch(function(err){
+      console.warn('memberIds query error (index may not exist yet):', err.message);
+      showSwitcher([]);
+    });
+
+  }).catch(function(err){
+    console.warn('loadUserProfiles error:', err.message);
     showSwitcher([]);
   });
 }
@@ -2083,6 +2155,16 @@ function enterProfile(profile){
 
   // Hide switcher
   document.getElementById('switcherScreen').classList.remove('active');
+
+  // Show active child chip in Ask tab header
+  var chip = document.getElementById('activeChildChip');
+  var chipName = document.getElementById('activeChildName');
+  var chipAvatar = document.getElementById('activeChildAvatar');
+  if(chip && profile.childName){
+    chip.style.display = 'block';
+    if(chipName) chipName.textContent = profile.childName;
+    if(chipAvatar) chipAvatar.textContent = profile.childName.substring(0,1).toUpperCase();
+  }
 
   // Update settings UI
   updateSettingsAccountUI();
@@ -2268,30 +2350,48 @@ function startCloudListeners(){
   if(!currentProfileId) return;
   stopCloudListeners();
 
-  // Saved sets listener
+  // Saved sets listener — no .orderBy() to avoid needing a composite index
   savedSetListener = fbDb.collection('savedSets')
   .where('profileId', '==', currentProfileId)
-  .orderBy('createdAt', 'desc')
   .onSnapshot(function(snap){
     var sets = [];
     snap.forEach(function(doc){ sets.push(Object.assign({ id: doc.id }, doc.data())); });
+    // Sort client-side — newest first
+    sets.sort(function(a,b){
+      var ta = a.createdAt && a.createdAt.seconds ? a.createdAt.seconds : (a.createdAt||0);
+      var tb = b.createdAt && b.createdAt.seconds ? b.createdAt.seconds : (b.createdAt||0);
+      return tb - ta;
+    });
     _cloudSavedSets = sets;
     if(document.getElementById('page-saved').classList.contains('active')) renderSavedSets();
     var ind = document.getElementById('syncIndicator');
     if(ind) ind.style.display = 'inline';
-  }, function(err){ console.warn('savedSets listener error:', err); });
+  }, function(err){
+    console.warn('savedSets listener error:', err.message);
+    // Show a useful message if it's an index error
+    if(err.message && err.message.indexOf('index') !== -1){
+      console.warn('Firestore index missing — data will not sync until index is created');
+    }
+  });
 
-  // Log listener
+  // Log listener — no .orderBy() to avoid composite index requirement
   logListener = fbDb.collection('logs')
   .where('profileId', '==', currentProfileId)
-  .orderBy('createdAt', 'desc')
-  .limit(200)
   .onSnapshot(function(snap){
     var logs = [];
     snap.forEach(function(doc){ logs.push(Object.assign({ id: doc.id }, doc.data())); });
+    // Sort client-side — newest first, limit to 200
+    logs.sort(function(a,b){
+      var ta = a.createdAt && a.createdAt.seconds ? a.createdAt.seconds : (a.ts||0);
+      var tb = b.createdAt && b.createdAt.seconds ? b.createdAt.seconds : (b.ts||0);
+      return tb - ta;
+    });
+    if(logs.length > 200) logs = logs.slice(0, 200);
     _cloudLogs = logs;
     if(document.getElementById('page-log').classList.contains('active')) renderHistory();
-  }, function(err){ console.warn('logs listener error:', err); });
+  }, function(err){
+    console.warn('logs listener error:', err.message);
+  });
 }
 
 function stopCloudListeners(){
@@ -2337,7 +2437,7 @@ function confirmSave(){
   var photosData = pendingSave.photos || [];
   uploadPhotosForSet(photosData)
   .then(function(photoRefs){
-    return fbDb.collection('savedSets').add({
+    var setData = {
       profileId:     currentProfileId,
       name:          name,
       question:      pendingSave.q,
@@ -2347,11 +2447,20 @@ function confirmSave(){
       createdByName: (currentUserDoc && currentUserDoc.name) || 'User',
       createdAt:     firebase.firestore.FieldValue.serverTimestamp(),
       updatedAt:     firebase.firestore.FieldValue.serverTimestamp()
+    };
+    return fbDb.collection('savedSets').add(setData)
+    .then(function(ref){
+      // Immediately update local cache so UI refreshes without waiting for listener
+      var localCopy = Object.assign({ id: ref.id }, setData, { createdAt: { seconds: Date.now()/1000 } });
+      if(!_cloudSavedSets) _cloudSavedSets = [];
+      _cloudSavedSets.unshift(localCopy);
+      return ref;
     });
   })
   .then(function(){
     closeModal('saveModal');
-    showToast('✅ Saved to cloud!');
+    renderSavedSets();
+    showToast('✅ Saved!');
   })
   .catch(function(err){ showToast('⚠️ Save failed: '+err.message); });
 }
@@ -2406,9 +2515,8 @@ function saveHistory(question, card){
   // Cloud: Firestore
   var loggedByName = (currentUserDoc && currentUserDoc.name) || 'User';
   var loggedByRole = (currentUserDoc && currentUserDoc.role) || 'parent';
-  // Add role label e.g. "Dr. James (Therapist)"
   var roleLabel = ROLE_META[loggedByRole] ? ROLE_META[loggedByRole].label : '';
-  fbDb.collection('logs').add({
+  var logEntry = {
     profileId:      currentProfileId,
     question:       question,
     answer:         card.label,
@@ -2419,7 +2527,14 @@ function saveHistory(question, card){
     loggedByRole:   loggedByRole,
     sessionDate:    firebase.firestore.FieldValue.serverTimestamp(),
     createdAt:      firebase.firestore.FieldValue.serverTimestamp()
-  }).catch(function(err){ console.warn('Log save error:', err); });
+  };
+  // Immediately update local cache so Log tab shows entry right away
+  if(!_cloudLogs) _cloudLogs = [];
+  var localLog = Object.assign({}, logEntry, { createdAt: { seconds: Date.now()/1000 }, ts: Date.now() });
+  _cloudLogs.unshift(localLog);
+  if(_cloudLogs.length > 200) _cloudLogs = _cloudLogs.slice(0,200);
+  fbDb.collection('logs').add(logEntry)
+  .catch(function(err){ console.warn('Log save error:', err.message); });
 }
 
 // ── SETTINGS ACCOUNT UI ───────────────────────────────────────────
@@ -2457,6 +2572,19 @@ function updateSettingsAccountUI(){
     document.getElementById('acctMode').textContent   = '☁️ Cloud Sync Active';
   }
 
+  // Show switch profile button when signed in
+  var switchRow = document.getElementById('switchProfileRow');
+  var switchLabel = document.getElementById('switchProfileLabel');
+  if(switchRow){
+    switchRow.style.display = currentProfileId ? 'block' : 'none';
+    // Label changes based on role
+    if(switchLabel){
+      var role = (currentUserDoc && currentUserDoc.role) || 'parent';
+      switchLabel.textContent = (role === 'therapist' || role === 'teacher' || role === 'caregiver')
+        ? 'Switch Client' : 'Switch Child';
+    }
+  }
+
   // Show members card for parents/owners with a profile
   if(membersCard && currentProfileId){
     var myRole = (currentProfile && currentProfile.members && currentProfile.members[currentUser.uid] && currentProfile.members[currentUser.uid].role) || 'owner';
@@ -2473,6 +2601,47 @@ function updateSettingsAccountUI(){
 
 function openAccountPanel(){
   showPage('settings', document.getElementById('navSettings'));
+}
+
+function openProfileSwitcher(){
+  // Re-fetch all profiles for this user and show the switcher
+  if(!currentUser) return;
+  var uid  = currentUser.uid;
+  var role = (currentUserDoc && currentUserDoc.role) || 'parent';
+
+  // Stop current listeners before switching
+  stopCloudListeners();
+  _cloudSavedSets = null;
+  _cloudLogs = null;
+
+  // Query owner profiles
+  fbDb.collection('childProfiles').where('ownerId', '==', uid).get()
+  .then(function(snap){
+    var profiles = [];
+    snap.forEach(function(doc){ profiles.push(Object.assign({id: doc.id}, doc.data())); });
+
+    // For non-parents, also query by memberIds
+    if(role !== 'parent' && role !== 'owner'){
+      return fbDb.collection('childProfiles')
+      .where('memberIds', 'array-contains', uid).get()
+      .then(function(snap2){
+        snap2.forEach(function(doc){
+          if(!profiles.some(function(p){ return p.id === doc.id; })){
+            profiles.push(Object.assign({id: doc.id}, doc.data()));
+          }
+        });
+        return profiles;
+      }).catch(function(){ return profiles; });
+    }
+    return profiles;
+  })
+  .then(function(profiles){
+    showSwitcher(profiles);
+  })
+  .catch(function(err){
+    console.warn('openProfileSwitcher error:', err.message);
+    showSwitcher([]);
+  });
 }
 
 function renderMembersList(){
