@@ -403,6 +403,20 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 .sync-dot.offline{background:#FFA500;animation:none}
 
+
+/* ── PASSWORD GATE ── */
+.pw-gate{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px}
+.pw-inner{width:100%;max-width:380px;text-align:center}
+.pw-logo{font-size:2.4rem;font-weight:900;color:var(--primary);letter-spacing:-0.5px;margin-bottom:6px}
+.pw-logo span{color:var(--secondary)}
+.pw-tagline{font-size:0.78rem;color:var(--text-muted);font-weight:500;margin-bottom:36px}
+.pw-title{font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:6px}
+.pw-sub{font-size:0.8rem;color:var(--text-muted);font-weight:500;margin-bottom:20px;line-height:1.5}
+.pw-input{width:100%;border:2px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;font-family:inherit;font-size:1rem;font-weight:600;color:var(--text);outline:none;background:#FAFBFF;-webkit-appearance:none;text-align:center;letter-spacing:2px;transition:border-color 0.18s,box-shadow 0.18s;margin-bottom:12px}
+.pw-input:focus{border-color:var(--primary);background:#fff;box-shadow:0 0 0 3px rgba(45,127,249,0.10)}
+.pw-error{color:#C0392B;font-size:0.8rem;font-weight:700;margin-bottom:12px;min-height:18px}
+.pw-footer{font-size:0.65rem;color:var(--text-muted);font-weight:500;margin-top:32px;line-height:1.6}
+
 </style>
 </head>
 <body>
@@ -644,6 +658,24 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
   </div>
 </div>
 
+
+<!-- ══ PASSWORD GATE (PWA/browser only — skipped in native app) ══ -->
+<div id="pwGate" class="pw-gate" style="display:none">
+  <div class="pw-inner">
+    <div class="pw-logo">Oi<span>GO</span></div>
+    <div class="pw-tagline">Generate a Visual for your Question</div>
+    <div class="pw-title">Beta Access</div>
+    <div class="pw-sub">OiGO is currently in private testing.<br>Enter your access code to continue.</div>
+    <input type="password" id="pwInput" class="pw-input" placeholder="Access code" autocomplete="off" autocorrect="off" autocapitalize="off">
+    <div class="pw-error" id="pwError"></div>
+    <button class="btn-primary" style="width:100%" onclick="checkPassword()">Enter OiGO</button>
+    <div class="pw-footer">
+      OiGO is a visual communication app for children.<br>
+      Coming soon to the App Store and Google Play.<br><br>
+      ™ This app is trademarked by Brizuela Creative.
+    </div>
+  </div>
+</div>
 
 <a href="#main-content" class="skip-link">Skip to main content</a>
 <div id="sr-announce" aria-live="assertive" aria-atomic="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)"></div>
@@ -1765,6 +1797,20 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 .sync-dot.offline{background:#FFA500;animation:none}
 
+
+/* ── PASSWORD GATE ── */
+.pw-gate{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px}
+.pw-inner{width:100%;max-width:380px;text-align:center}
+.pw-logo{font-size:2.4rem;font-weight:900;color:var(--primary);letter-spacing:-0.5px;margin-bottom:6px}
+.pw-logo span{color:var(--secondary)}
+.pw-tagline{font-size:0.78rem;color:var(--text-muted);font-weight:500;margin-bottom:36px}
+.pw-title{font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:6px}
+.pw-sub{font-size:0.8rem;color:var(--text-muted);font-weight:500;margin-bottom:20px;line-height:1.5}
+.pw-input{width:100%;border:2px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;font-family:inherit;font-size:1rem;font-weight:600;color:var(--text);outline:none;background:#FAFBFF;-webkit-appearance:none;text-align:center;letter-spacing:2px;transition:border-color 0.18s,box-shadow 0.18s;margin-bottom:12px}
+.pw-input:focus{border-color:var(--primary);background:#fff;box-shadow:0 0 0 3px rgba(45,127,249,0.10)}
+.pw-error{color:#C0392B;font-size:0.8rem;font-weight:700;margin-bottom:12px;min-height:18px}
+.pw-footer{font-size:0.65rem;color:var(--text-muted);font-weight:500;margin-top:32px;line-height:1.6}
+
 </style>
 </head>
 <body>
@@ -2006,6 +2052,24 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
   </div>
 </div>
 
+
+<!-- ══ PASSWORD GATE (PWA/browser only — skipped in native app) ══ -->
+<div id="pwGate" class="pw-gate" style="display:none">
+  <div class="pw-inner">
+    <div class="pw-logo">Oi<span>GO</span></div>
+    <div class="pw-tagline">Generate a Visual for your Question</div>
+    <div class="pw-title">Beta Access</div>
+    <div class="pw-sub">OiGO is currently in private testing.<br>Enter your access code to continue.</div>
+    <input type="password" id="pwInput" class="pw-input" placeholder="Access code" autocomplete="off" autocorrect="off" autocapitalize="off">
+    <div class="pw-error" id="pwError"></div>
+    <button class="btn-primary" style="width:100%" onclick="checkPassword()">Enter OiGO</button>
+    <div class="pw-footer">
+      OiGO is a visual communication app for children.<br>
+      Coming soon to the App Store and Google Play.<br><br>
+      ™ This app is trademarked by Brizuela Creative.
+    </div>
+  </div>
+</div>
 
 <a href="#main-content" class="skip-link">Skip to main content</a>
 <div id="sr-announce" aria-live="assertive" aria-atomic="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)"></div>
@@ -3241,6 +3305,60 @@ document.getElementById('quickChips').addEventListener('click',function(e){
 loadSettings();
 
 if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
+
+// ── PASSWORD GATE (browser/PWA only) ─────────────────────────────────────
+// Skipped entirely in native Capacitor app
+(function(){
+  // Never show gate in native app
+  if(window.Capacitor && window.Capacitor.isNative) return;
+  // Already unlocked this session
+  if(sessionStorage.getItem('oigo_beta_access') === '1') return;
+  // Show the gate
+  document.addEventListener('DOMContentLoaded', function(){
+    var gate = document.getElementById('pwGate');
+    if(gate){
+      gate.style.display = 'flex';
+      setTimeout(function(){
+        var inp = document.getElementById('pwInput');
+        if(inp) inp.focus();
+      }, 100);
+    }
+  });
+  // Enter key submits
+  document.addEventListener('DOMContentLoaded', function(){
+    var inp = document.getElementById('pwInput');
+    if(inp) inp.addEventListener('keydown', function(e){
+      if(e.key === 'Enter') checkPassword();
+    });
+  });
+})();
+
+function checkPassword(){
+  var inp = document.getElementById('pwInput');
+  var err = document.getElementById('pwError');
+  var val = (inp ? inp.value : '').trim();
+  if(!val){ if(err) err.textContent = 'Please enter your access code.'; return; }
+  var target = 'T2lHTzIwMjUh';
+  var entered = btoa(val);
+  if(entered === target){
+    sessionStorage.setItem('oigo_beta_access', '1');
+    var gate = document.getElementById('pwGate');
+    if(gate){
+      gate.style.opacity = '0';
+      gate.style.transition = 'opacity 0.3s ease';
+      setTimeout(function(){ gate.style.display = 'none'; }, 300);
+    }
+  } else {
+    if(err) err.textContent = 'Incorrect access code. Please try again.';
+    if(inp){ inp.value = ''; inp.focus(); }
+    // Shake animation
+    if(inp){
+      inp.style.borderColor = '#C0392B';
+      setTimeout(function(){ inp.style.borderColor = ''; }, 1000);
+    }
+  }
+}
+
 
 
 // ═══════════════════════════════════════════════════════════════════
