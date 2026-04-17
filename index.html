@@ -3309,27 +3309,22 @@ if('serviceWorker' in navigator){window.addEventListener('load',function(){navig
 // ── PASSWORD GATE (browser/PWA only) ─────────────────────────────────────
 // Skipped entirely in native Capacitor app
 (function(){
-  // Never show gate in native app
   if(window.Capacitor && window.Capacitor.isNative) return;
-  // Already unlocked this session
-  if(sessionStorage.getItem('oigo_beta_access') === '1') return;
-  // Show the gate
+  var CURRENT_VERSION = 'beta-v2-202604170252';
+  var storedVersion = localStorage.getItem('oigo_beta_version');
+  var isUnlocked    = localStorage.getItem('oigo_beta_access') === '1';
+  if(storedVersion !== CURRENT_VERSION){
+    localStorage.removeItem('oigo_beta_access');
+    localStorage.removeItem('oigo_beta_version');
+  } else if(isUnlocked){ return; }
   document.addEventListener('DOMContentLoaded', function(){
     var gate = document.getElementById('pwGate');
     if(gate){
       gate.style.display = 'flex';
-      setTimeout(function(){
-        var inp = document.getElementById('pwInput');
-        if(inp) inp.focus();
-      }, 100);
+      setTimeout(function(){ var inp=document.getElementById('pwInput'); if(inp)inp.focus(); }, 100);
     }
-  });
-  // Enter key submits
-  document.addEventListener('DOMContentLoaded', function(){
     var inp = document.getElementById('pwInput');
-    if(inp) inp.addEventListener('keydown', function(e){
-      if(e.key === 'Enter') checkPassword();
-    });
+    if(inp) inp.addEventListener('keydown', function(e){ if(e.key==='Enter') checkPassword(); });
   });
 })();
 
@@ -3338,10 +3333,11 @@ function checkPassword(){
   var err = document.getElementById('pwError');
   var val = (inp ? inp.value : '').trim();
   if(!val){ if(err) err.textContent = 'Please enter your access code.'; return; }
-  var target = 'T2lHTzIwMjUh';
+  var target = 'RzBHMDIwMjYh';
   var entered = btoa(val);
   if(entered === target){
-    sessionStorage.setItem('oigo_beta_access', '1');
+    localStorage.setItem('oigo_beta_access','1');
+    localStorage.setItem('oigo_beta_version','beta-v2-202604170252');
     var gate = document.getElementById('pwGate');
     if(gate){
       gate.style.opacity = '0';
