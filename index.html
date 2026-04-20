@@ -424,17 +424,28 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 .script-card-name{font-size:0.95rem;font-weight:800;color:var(--text);margin-bottom:4px}
 .script-card-preview{font-size:0.75rem;color:var(--text-muted);font-weight:500;line-height:1.4}
 .script-card-count{font-size:0.68rem;font-weight:700;color:var(--primary);margin-top:6px}
-.script-player{background:var(--card);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);padding:24px 20px;margin-bottom:14px;border:2px solid var(--primary-light)}
-.script-player-title{font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:var(--primary);margin-bottom:16px;text-align:center}
-.script-line-box{background:var(--primary-light);border-radius:var(--radius-md);padding:20px;text-align:center;margin-bottom:16px;min-height:90px;display:flex;align-items:center;justify-content:center}
-.script-line-text{font-size:1.2rem;font-weight:700;color:var(--text);line-height:1.4}
-.script-progress{font-size:0.72rem;color:var(--text-muted);font-weight:600;text-align:center;margin-bottom:14px}
-.script-nav{display:flex;gap:10px;justify-content:center}
-.script-nav button{flex:1;max-width:140px;padding:12px;border-radius:var(--radius-sm);font-family:inherit;font-size:0.88rem;font-weight:800;border:none;cursor:pointer;-webkit-appearance:none}
-.script-btn-prev{background:#F0F3FA;color:var(--text-muted)}
-.script-btn-next{background:var(--primary);color:#fff}
-.script-btn-done{background:var(--secondary);color:#fff}
-.script-speak-btn{background:none;border:none;font-size:1.3rem;cursor:pointer;padding:4px;margin-top:8px}
+.script-player-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.script-player-title{font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:var(--primary)}
+.script-bubbles{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.script-bubble{background:var(--card);border:2px solid var(--border);border-radius:20px 20px 20px 4px;padding:14px 16px;cursor:pointer;transition:all 0.18s;-webkit-tap-highlight-color:transparent;text-align:left}
+.script-bubble:active{transform:scale(0.97)}
+.script-bubble.selected{background:var(--primary-light);border-color:var(--primary)}
+.script-bubble.selected .script-bubble-num{color:var(--primary)}
+.script-bubble-text{font-size:1rem;font-weight:700;color:var(--text);line-height:1.45;margin-bottom:0}
+.script-bubble-num{font-size:0.62rem;font-weight:800;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px}
+.script-bubble-footer{display:none;margin-top:12px;align-items:center;justify-content:space-between;gap:10px}
+.script-bubble.selected .script-bubble-footer{display:flex}
+.script-bubble-hint{font-size:0.72rem;color:var(--text-muted);font-weight:500;font-style:italic}
+.script-play-btn{background:var(--primary);color:#fff;border:none;border-radius:50px;padding:8px 18px;font-family:inherit;font-size:0.82rem;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;-webkit-appearance:none;flex-shrink:0}
+.script-play-btn:active{transform:scale(0.95)}
+.script-play-btn.speaking{background:var(--secondary)}
+.script-bubble-wave{display:none;gap:3px;align-items:center}
+.script-bubble.speaking .script-bubble-wave{display:flex}
+.script-bubble-wave span{width:3px;background:var(--primary);border-radius:2px;animation:wave 0.8s ease-in-out infinite}
+.script-bubble-wave span:nth-child(1){height:8px;animation-delay:0s}
+.script-bubble-wave span:nth-child(2){height:14px;animation-delay:0.15s}
+.script-bubble-wave span:nth-child(3){height:10px;animation-delay:0.3s}
+@keyframes wave{0%,100%{transform:scaleY(0.5)}50%{transform:scaleY(1)}}
 .script-actions{display:flex;gap:8px;margin-top:10px}
 
 </style>
@@ -734,6 +745,19 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 
 
 
+<!-- Confirm Delete Modal -->
+<div class="overlay" id="confirmModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="confirmModalTitle">Are you sure?</div>
+    <div class="modal-sub" id="confirmModalMsg"></div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn-secondary" style="flex:1" onclick="closeModal('confirmModal')">Cancel</button>
+      <button class="btn-primary" style="flex:1;background:#C0392B;border-color:#C0392B" id="confirmModalOkBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
 <!-- New/Edit Script Modal -->
 <div class="overlay" id="scriptModal">
   <div class="modal" style="max-height:85vh;overflow-y:auto">
@@ -878,23 +902,12 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 
   <!-- Script Player (shown when running a script) -->
   <div id="scriptPlayer" style="display:none">
-    <div class="script-player">
+    <div class="script-player-header">
       <div class="script-player-title" id="scriptPlayerTitle">Script</div>
-      <div class="script-line-box">
-        <div>
-          <div class="script-line-text" id="scriptLineText">...</div>
-          <div style="text-align:center">
-            <button class="script-speak-btn" onclick="speakCurrentLine()" aria-label="Repeat line">🔊</button>
-          </div>
-        </div>
-      </div>
-      <div class="script-progress" id="scriptProgress">Line 1 of 1</div>
-      <div class="script-nav">
-        <button class="script-nav button script-btn-prev" id="scriptPrevBtn" onclick="scriptNav(-1)">← Back</button>
-        <button class="script-nav button script-btn-next" id="scriptNextBtn" onclick="scriptNav(1)">Next →</button>
-      </div>
-      <button class="btn-ghost" style="width:100%;margin-top:12px;font-size:0.8rem" onclick="closeScriptPlayer()">✕ Close Script</button>
+      <button class="btn-ghost" style="padding:6px 12px;font-size:0.75rem;font-weight:700" onclick="closeScriptPlayer()">✕ Close</button>
     </div>
+    <div style="font-size:0.75rem;color:var(--text-muted);font-weight:500;margin-bottom:12px">Tap a line to select it · tap ▶ Play to speak</div>
+    <div class="script-bubbles" id="scriptBubbles"></div>
   </div>
 
   <!-- Script List -->
@@ -1924,17 +1937,28 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 .script-card-name{font-size:0.95rem;font-weight:800;color:var(--text);margin-bottom:4px}
 .script-card-preview{font-size:0.75rem;color:var(--text-muted);font-weight:500;line-height:1.4}
 .script-card-count{font-size:0.68rem;font-weight:700;color:var(--primary);margin-top:6px}
-.script-player{background:var(--card);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);padding:24px 20px;margin-bottom:14px;border:2px solid var(--primary-light)}
-.script-player-title{font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:var(--primary);margin-bottom:16px;text-align:center}
-.script-line-box{background:var(--primary-light);border-radius:var(--radius-md);padding:20px;text-align:center;margin-bottom:16px;min-height:90px;display:flex;align-items:center;justify-content:center}
-.script-line-text{font-size:1.2rem;font-weight:700;color:var(--text);line-height:1.4}
-.script-progress{font-size:0.72rem;color:var(--text-muted);font-weight:600;text-align:center;margin-bottom:14px}
-.script-nav{display:flex;gap:10px;justify-content:center}
-.script-nav button{flex:1;max-width:140px;padding:12px;border-radius:var(--radius-sm);font-family:inherit;font-size:0.88rem;font-weight:800;border:none;cursor:pointer;-webkit-appearance:none}
-.script-btn-prev{background:#F0F3FA;color:var(--text-muted)}
-.script-btn-next{background:var(--primary);color:#fff}
-.script-btn-done{background:var(--secondary);color:#fff}
-.script-speak-btn{background:none;border:none;font-size:1.3rem;cursor:pointer;padding:4px;margin-top:8px}
+.script-player-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.script-player-title{font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:var(--primary)}
+.script-bubbles{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.script-bubble{background:var(--card);border:2px solid var(--border);border-radius:20px 20px 20px 4px;padding:14px 16px;cursor:pointer;transition:all 0.18s;-webkit-tap-highlight-color:transparent;text-align:left}
+.script-bubble:active{transform:scale(0.97)}
+.script-bubble.selected{background:var(--primary-light);border-color:var(--primary)}
+.script-bubble.selected .script-bubble-num{color:var(--primary)}
+.script-bubble-text{font-size:1rem;font-weight:700;color:var(--text);line-height:1.45;margin-bottom:0}
+.script-bubble-num{font-size:0.62rem;font-weight:800;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px}
+.script-bubble-footer{display:none;margin-top:12px;align-items:center;justify-content:space-between;gap:10px}
+.script-bubble.selected .script-bubble-footer{display:flex}
+.script-bubble-hint{font-size:0.72rem;color:var(--text-muted);font-weight:500;font-style:italic}
+.script-play-btn{background:var(--primary);color:#fff;border:none;border-radius:50px;padding:8px 18px;font-family:inherit;font-size:0.82rem;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;-webkit-appearance:none;flex-shrink:0}
+.script-play-btn:active{transform:scale(0.95)}
+.script-play-btn.speaking{background:var(--secondary)}
+.script-bubble-wave{display:none;gap:3px;align-items:center}
+.script-bubble.speaking .script-bubble-wave{display:flex}
+.script-bubble-wave span{width:3px;background:var(--primary);border-radius:2px;animation:wave 0.8s ease-in-out infinite}
+.script-bubble-wave span:nth-child(1){height:8px;animation-delay:0s}
+.script-bubble-wave span:nth-child(2){height:14px;animation-delay:0.15s}
+.script-bubble-wave span:nth-child(3){height:10px;animation-delay:0.3s}
+@keyframes wave{0%,100%{transform:scaleY(0.5)}50%{transform:scaleY(1)}}
 .script-actions{display:flex;gap:8px;margin-top:10px}
 
 </style>
@@ -2234,6 +2258,19 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 
 
 
+<!-- Confirm Delete Modal -->
+<div class="overlay" id="confirmModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="confirmModalTitle">Are you sure?</div>
+    <div class="modal-sub" id="confirmModalMsg"></div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn-secondary" style="flex:1" onclick="closeModal('confirmModal')">Cancel</button>
+      <button class="btn-primary" style="flex:1;background:#C0392B;border-color:#C0392B" id="confirmModalOkBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
 <!-- New/Edit Script Modal -->
 <div class="overlay" id="scriptModal">
   <div class="modal" style="max-height:85vh;overflow-y:auto">
@@ -2378,23 +2415,12 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 
   <!-- Script Player (shown when running a script) -->
   <div id="scriptPlayer" style="display:none">
-    <div class="script-player">
+    <div class="script-player-header">
       <div class="script-player-title" id="scriptPlayerTitle">Script</div>
-      <div class="script-line-box">
-        <div>
-          <div class="script-line-text" id="scriptLineText">...</div>
-          <div style="text-align:center">
-            <button class="script-speak-btn" onclick="speakCurrentLine()" aria-label="Repeat line">🔊</button>
-          </div>
-        </div>
-      </div>
-      <div class="script-progress" id="scriptProgress">Line 1 of 1</div>
-      <div class="script-nav">
-        <button class="script-nav button script-btn-prev" id="scriptPrevBtn" onclick="scriptNav(-1)">← Back</button>
-        <button class="script-nav button script-btn-next" id="scriptNextBtn" onclick="scriptNav(1)">Next →</button>
-      </div>
-      <button class="btn-ghost" style="width:100%;margin-top:12px;font-size:0.8rem" onclick="closeScriptPlayer()">✕ Close Script</button>
+      <button class="btn-ghost" style="padding:6px 12px;font-size:0.75rem;font-weight:700" onclick="closeScriptPlayer()">✕ Close</button>
     </div>
+    <div style="font-size:0.75rem;color:var(--text-muted);font-weight:500;margin-bottom:12px">Tap a line to select it · tap ▶ Play to speak</div>
+    <div class="script-bubbles" id="scriptBubbles"></div>
   </div>
 
   <!-- Script List -->
@@ -3520,6 +3546,19 @@ document.getElementById('quickChips').addEventListener('click',function(e){
 // ── INIT ──────────────────────────────────────────────────────────────────────
 loadSettings();
 
+
+// ── IN-APP CONFIRM (replaces confirm() which is blocked in WKWebView/PWA) ──
+function showConfirm(title, msg, onOk){
+  document.getElementById('confirmModalTitle').textContent = title;
+  document.getElementById('confirmModalMsg').textContent   = msg;
+  var okBtn = document.getElementById('confirmModalOkBtn');
+  okBtn.onclick = function(){
+    closeModal('confirmModal');
+    onOk();
+  };
+  openModal('confirmModal');
+}
+
 if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
 
 // ══════════════════════════════════════════════════════════════
@@ -3590,12 +3629,18 @@ function renderScripts(){
           '<div class="script-card-count">' + script.lines.length + ' line' + (script.lines.length!==1?'s':'') + '</div>' +
         '</div>' +
         '<div style="display:flex;gap:6px;flex-shrink:0;margin-top:2px">' +
-          '<button class="btn-ghost" style="padding:6px 10px;font-size:0.75rem" onclick="editScript(\'' + script.id + '\')">✏️</button>' +
-          '<button class="btn-ghost" style="padding:6px 10px;font-size:0.75rem;color:#C0392B" onclick="deleteScript(\'' + script.id + '\')">🗑</button>' +
+          '<button class="btn-ghost" style="padding:6px 10px;font-size:0.75rem" data-action="edit" data-id="' + escHtml(script.id) + '">✏️</button>' +
+          '<button class="btn-ghost" style="padding:6px 10px;font-size:0.75rem;color:#C0392B" data-action="delete" data-id="' + escHtml(script.id) + '">🗑</button>' +
         '</div>' +
       '</div>';
     el.addEventListener('click', function(e){
-      // Don't start if edit/delete was clicked
+      var btn = e.target.closest('[data-action]');
+      if(btn){
+        var action = btn.getAttribute('data-action');
+        var id     = btn.getAttribute('data-id');
+        if(action === 'edit')   { editScript(id);   return; }
+        if(action === 'delete') { deleteScript(id); return; }
+      }
       if(e.target.tagName === 'BUTTON') return;
       startScript(script);
     });
@@ -3649,64 +3694,117 @@ function saveScript(){
 function deleteScript(id){
   var script = _scripts.find(function(s){ return s.id === id; });
   if(!script) return;
-  if(!confirm('Delete "' + script.name + '"?')) return;
-  _scripts = _scripts.filter(function(s){ return s.id !== id; });
-  persistScripts();
-  renderScripts();
+  showConfirm(
+    'Delete Script?',
+    'Delete "' + script.name + '"? This cannot be undone.',
+    function(){
+      _scripts = _scripts.filter(function(s){ return s.id !== id; });
+      persistScripts();
+      renderScripts();
+      showToast('Script deleted');
+    }
+  );
 }
 
 // ── Script Player ─────────────────────────────────────────────
 function startScript(script){
   _currentScript = script;
-  _currentLine   = 0;
-  document.getElementById('scriptListView').style.display  = 'none';
-  document.getElementById('scriptPlayer').style.display    = 'block';
-  updateScriptPlayer();
-  // Auto-speak first line
-  setTimeout(function(){ speakCurrentLine(); }, 400);
+  _currentLine   = -1;
+  document.getElementById('scriptListView').style.display = 'none';
+  document.getElementById('scriptPlayer').style.display   = 'block';
+  document.getElementById('scriptPlayerTitle').textContent = script.name;
+  renderScriptBubbles();
+  // Select first line so child knows where to start — but don't auto-speak
+  setTimeout(function(){ selectScriptLine(0); }, 200);
 }
 
-function updateScriptPlayer(){
+function renderScriptBubbles(){
   if(!_currentScript) return;
-  var lines = _currentScript.lines;
-  var line  = lines[_currentLine] || '';
-  document.getElementById('scriptPlayerTitle').textContent = _currentScript.name;
-  document.getElementById('scriptLineText').textContent    = line;
-  document.getElementById('scriptProgress').textContent    =
-    'Line ' + (_currentLine + 1) + ' of ' + lines.length;
+  var container = document.getElementById('scriptBubbles');
+  if(!container) return;
+  container.innerHTML = '';
+  _currentScript.lines.forEach(function(line, idx){
+    var bubble = document.createElement('div');
+    bubble.className = 'script-bubble';
+    bubble.id = 'scriptBubble-' + idx;
+    bubble.innerHTML =
+      '<div class="script-bubble-num">Line ' + (idx+1) + '</div>' +
+      '<div class="script-bubble-text">' + escHtml(line) + '</div>' +
+      '<div class="script-bubble-footer">' +
+        '<div style="display:flex;align-items:center;gap:8px">' +
+          '<div class="script-bubble-wave"><span></span><span></span><span></span></div>' +
+          '<span class="script-bubble-hint">Try saying it, or tap ▶</span>' +
+        '</div>' +
+        '<button class="script-play-btn" id="scriptPlayBtn-' + idx + '">' +
+          '▶ Play' +
+        '</button>' +
+      '</div>';
+    // Tap bubble → select it (show play button, no auto-speak)
+    bubble.addEventListener('click', function(e){
+      if(e.target.closest('.script-play-btn')) return; // handled separately
+      selectScriptLine(idx);
+    });
+    // Play button → speak
+    var playBtn = bubble.querySelector('.script-play-btn');
+    if(playBtn){
+      playBtn.addEventListener('click', function(e){
+        e.stopPropagation();
+        playScriptLine(idx);
+      });
+    }
+    container.appendChild(bubble);
+  });
+}
 
-  // Update buttons
-  var prevBtn = document.getElementById('scriptPrevBtn');
-  var nextBtn = document.getElementById('scriptNextBtn');
-  if(prevBtn) prevBtn.disabled = (_currentLine === 0);
-  if(prevBtn) prevBtn.style.opacity = (_currentLine === 0) ? '0.4' : '1';
+// Select a line (highlight it, show play button) — no auto-speak
+function selectScriptLine(idx){
+  if(!_currentScript) return;
+  _currentLine = idx;
+  _currentScript.lines.forEach(function(_, i){
+    var b = document.getElementById('scriptBubble-' + i);
+    if(!b) return;
+    b.classList.toggle('selected', i === idx);
+    b.classList.remove('speaking');
+    var btn = document.getElementById('scriptPlayBtn-' + i);
+    if(btn){ btn.textContent = '▶ Play'; btn.className = 'script-play-btn'; }
+  });
+  var activeBubble = document.getElementById('scriptBubble-' + idx);
+  if(activeBubble) activeBubble.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
 
-  var isLast = (_currentLine === lines.length - 1);
-  if(nextBtn){
-    nextBtn.textContent  = isLast ? '✅ Done' : 'Next →';
-    nextBtn.className    = 'script-nav button ' + (isLast ? 'script-btn-done' : 'script-btn-next');
-    nextBtn.onclick      = isLast ? closeScriptPlayer : function(){ scriptNav(1); };
+// Speak a line (called by the ▶ Play button)
+function playScriptLine(idx){
+  if(!_currentScript) return;
+  selectScriptLine(idx);
+  // Show speaking state on this bubble
+  var bubble = document.getElementById('scriptBubble-' + idx);
+  var btn    = document.getElementById('scriptPlayBtn-' + idx);
+  if(bubble) bubble.classList.add('speaking');
+  if(btn){ btn.textContent = '🔊 Speaking…'; btn.className = 'script-play-btn speaking'; }
+  // Speak, then restore button
+  var line = _currentScript.lines[idx];
+  if(line){
+    speak(line, null, function(){
+      if(bubble) bubble.classList.remove('speaking');
+      if(btn){ btn.textContent = '▶ Play'; btn.className = 'script-play-btn'; }
+    });
   }
+}
+
+function speakCurrentLine(){
+  if(_currentLine >= 0) playScriptLine(_currentLine);
+  else if(_currentScript) playScriptLine(0);
 }
 
 function scriptNav(dir){
   if(!_currentScript) return;
-  var newLine = _currentLine + dir;
-  if(newLine < 0 || newLine >= _currentScript.lines.length) return;
-  _currentLine = newLine;
-  updateScriptPlayer();
-  speakCurrentLine();
-}
-
-function speakCurrentLine(){
-  if(!_currentScript) return;
-  var line = _currentScript.lines[_currentLine];
-  if(line) speak(line, null);
+  var next = (_currentLine < 0 ? 0 : _currentLine) + dir;
+  if(next >= 0 && next < _currentScript.lines.length) playScriptLine(next);
 }
 
 function closeScriptPlayer(){
   _currentScript = null;
-  _currentLine   = 0;
+  _currentLine   = -1;
   document.getElementById('scriptPlayer').style.display   = 'none';
   document.getElementById('scriptListView').style.display = 'block';
 }
