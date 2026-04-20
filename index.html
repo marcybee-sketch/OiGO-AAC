@@ -417,6 +417,26 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 .pw-error{color:#C0392B;font-size:0.8rem;font-weight:700;margin-bottom:12px;min-height:18px}
 .pw-footer{font-size:0.65rem;color:var(--text-muted);font-weight:500;margin-top:32px;line-height:1.6}
 
+
+/* ── SCRIPTS ── */
+.script-card{background:var(--card);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);padding:18px;margin-bottom:12px;border:1px solid rgba(228,232,244,0.7);cursor:pointer;transition:all 0.15s;-webkit-tap-highlight-color:transparent}
+.script-card:active{transform:scale(0.98);border-color:var(--primary)}
+.script-card-name{font-size:0.95rem;font-weight:800;color:var(--text);margin-bottom:4px}
+.script-card-preview{font-size:0.75rem;color:var(--text-muted);font-weight:500;line-height:1.4}
+.script-card-count{font-size:0.68rem;font-weight:700;color:var(--primary);margin-top:6px}
+.script-player{background:var(--card);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);padding:24px 20px;margin-bottom:14px;border:2px solid var(--primary-light)}
+.script-player-title{font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:var(--primary);margin-bottom:16px;text-align:center}
+.script-line-box{background:var(--primary-light);border-radius:var(--radius-md);padding:20px;text-align:center;margin-bottom:16px;min-height:90px;display:flex;align-items:center;justify-content:center}
+.script-line-text{font-size:1.2rem;font-weight:700;color:var(--text);line-height:1.4}
+.script-progress{font-size:0.72rem;color:var(--text-muted);font-weight:600;text-align:center;margin-bottom:14px}
+.script-nav{display:flex;gap:10px;justify-content:center}
+.script-nav button{flex:1;max-width:140px;padding:12px;border-radius:var(--radius-sm);font-family:inherit;font-size:0.88rem;font-weight:800;border:none;cursor:pointer;-webkit-appearance:none}
+.script-btn-prev{background:#F0F3FA;color:var(--text-muted)}
+.script-btn-next{background:var(--primary);color:#fff}
+.script-btn-done{background:var(--secondary);color:#fff}
+.script-speak-btn{background:none;border:none;font-size:1.3rem;cursor:pointer;padding:4px;margin-top:8px}
+.script-actions{display:flex;gap:8px;margin-top:10px}
+
 </style>
 </head>
 <body>
@@ -713,6 +733,27 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 </div>
 
 
+
+<!-- New/Edit Script Modal -->
+<div class="overlay" id="scriptModal">
+  <div class="modal" style="max-height:85vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="scriptModalTitle">💬 New Script</div>
+    <div class="modal-sub">Give your script a name and add the lines the child will say.</div>
+    <div class="auth-field" style="margin-bottom:12px">
+      <label style="font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-mid);display:block;margin-bottom:6px">Script Name</label>
+      <input type="text" id="scriptNameInput" class="text-input" placeholder="e.g. Greeting a Friend" style="width:100%">
+    </div>
+    <div class="field-label gray" style="margin-bottom:8px">Lines <span style="font-weight:500;color:var(--text-muted);text-transform:none;letter-spacing:0">(one per line — child taps through each)</span></div>
+    <textarea id="scriptLinesInput" style="width:100%;border:2px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-family:inherit;font-size:0.9rem;font-weight:500;color:var(--text);background:#FAFBFF;min-height:180px;resize:vertical;outline:none;-webkit-appearance:none;line-height:1.6" placeholder="Hi! How are you?&#10;My name is Marco.&#10;It's nice to meet you!&#10;Do you want to play?"></textarea>
+    <div style="font-size:0.72rem;color:var(--text-muted);font-weight:500;margin-top:6px;margin-bottom:16px">Each line becomes one tap. The app speaks each line aloud as the child taps through.</div>
+    <div style="display:flex;gap:10px">
+      <button class="btn-secondary" style="flex:1" onclick="closeModal('scriptModal')">Cancel</button>
+      <button class="btn-primary" style="flex:2" onclick="saveScript()">Save Script</button>
+    </div>
+  </div>
+</div>
+
 <!-- Save Set Modal -->
 <div class="overlay" id="saveModal">
   <div class="modal">
@@ -826,6 +867,47 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 </div>
 
 
+
+
+<!-- PAGE: SCRIPTS -->
+<div class="page" id="page-scripts">
+  <div class="app-header" role="banner">
+    <div class="logo">Oi<span>GO</span></div>
+    <div class="tagline">Social Scripts</div>
+  </div>
+
+  <!-- Script Player (shown when running a script) -->
+  <div id="scriptPlayer" style="display:none">
+    <div class="script-player">
+      <div class="script-player-title" id="scriptPlayerTitle">Script</div>
+      <div class="script-line-box">
+        <div>
+          <div class="script-line-text" id="scriptLineText">...</div>
+          <div style="text-align:center">
+            <button class="script-speak-btn" onclick="speakCurrentLine()" aria-label="Repeat line">🔊</button>
+          </div>
+        </div>
+      </div>
+      <div class="script-progress" id="scriptProgress">Line 1 of 1</div>
+      <div class="script-nav">
+        <button class="script-nav button script-btn-prev" id="scriptPrevBtn" onclick="scriptNav(-1)">← Back</button>
+        <button class="script-nav button script-btn-next" id="scriptNextBtn" onclick="scriptNav(1)">Next →</button>
+      </div>
+      <button class="btn-ghost" style="width:100%;margin-top:12px;font-size:0.8rem" onclick="closeScriptPlayer()">✕ Close Script</button>
+    </div>
+  </div>
+
+  <!-- Script List -->
+  <div id="scriptListView">
+    <div id="scriptListEmpty" class="empty" style="display:none">
+      <div class="empty-icon">💬</div>
+      <div class="empty-text">No scripts yet</div>
+      <div class="empty-sub">Create scripts for greetings, games, asking for help, and more. Tap + to get started.</div>
+    </div>
+    <div id="scriptList"></div>
+    <button class="btn-primary" style="width:100%;margin-top:4px" onclick="openNewScriptModal()">+ Create New Script</button>
+  </div>
+</div>
 
 <!-- PAGE: SAVED -->
 <div class="page" id="page-saved">
@@ -963,6 +1045,11 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
       <line x1="8" y1="13" x2="16" y2="13"/>
       <line x1="8" y1="17" x2="12" y2="17"/>
     </svg>Log
+  </button>
+  <button class="nav-btn" id="navScripts" onclick="showPage('scripts',this)" aria-label="Scripts">
+    <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>Scripts
   </button>
   <button class="nav-btn" id="navSettings" onclick="showPage('settings',this)" aria-label="Settings">
     <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -1140,9 +1227,28 @@ document.addEventListener('touchstart', unlockAudio, {once:true, passive:true});
 document.addEventListener('click', unlockAudio, {once:true, passive:true});
 
 // ── ElevenLabs API call ───────────────────────────────────────────────────────
+// Pronunciation corrections for ElevenLabs
+var TTS_PRONOUNCE = {
+  'fries':      'frize',
+  'french fries':'french frize',
+  'grapes':     'grayps',
+};
+
+function fixPronunciation(text){
+  var t = text.toLowerCase();
+  var result = text;
+  Object.keys(TTS_PRONOUNCE).forEach(function(word){
+    var re = new RegExp('\\b' + word + '\\b', 'gi');
+    result = result.replace(re, TTS_PRONOUNCE[word]);
+  });
+  return result;
+}
+
 function speakEL(text,btnId,resultCb){
   var key=getElKey();
   if(!key){if(resultCb)resultCb(false);return;}
+  // Apply pronunciation corrections
+  text = fixPronunciation(text);
   if(_currentAudio){_currentAudio.pause();_currentAudio=null;}
 
   var gender=settings.voiceGender||'woman';
@@ -1811,6 +1917,26 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 .pw-error{color:#C0392B;font-size:0.8rem;font-weight:700;margin-bottom:12px;min-height:18px}
 .pw-footer{font-size:0.65rem;color:var(--text-muted);font-weight:500;margin-top:32px;line-height:1.6}
 
+
+/* ── SCRIPTS ── */
+.script-card{background:var(--card);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);padding:18px;margin-bottom:12px;border:1px solid rgba(228,232,244,0.7);cursor:pointer;transition:all 0.15s;-webkit-tap-highlight-color:transparent}
+.script-card:active{transform:scale(0.98);border-color:var(--primary)}
+.script-card-name{font-size:0.95rem;font-weight:800;color:var(--text);margin-bottom:4px}
+.script-card-preview{font-size:0.75rem;color:var(--text-muted);font-weight:500;line-height:1.4}
+.script-card-count{font-size:0.68rem;font-weight:700;color:var(--primary);margin-top:6px}
+.script-player{background:var(--card);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);padding:24px 20px;margin-bottom:14px;border:2px solid var(--primary-light)}
+.script-player-title{font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:var(--primary);margin-bottom:16px;text-align:center}
+.script-line-box{background:var(--primary-light);border-radius:var(--radius-md);padding:20px;text-align:center;margin-bottom:16px;min-height:90px;display:flex;align-items:center;justify-content:center}
+.script-line-text{font-size:1.2rem;font-weight:700;color:var(--text);line-height:1.4}
+.script-progress{font-size:0.72rem;color:var(--text-muted);font-weight:600;text-align:center;margin-bottom:14px}
+.script-nav{display:flex;gap:10px;justify-content:center}
+.script-nav button{flex:1;max-width:140px;padding:12px;border-radius:var(--radius-sm);font-family:inherit;font-size:0.88rem;font-weight:800;border:none;cursor:pointer;-webkit-appearance:none}
+.script-btn-prev{background:#F0F3FA;color:var(--text-muted)}
+.script-btn-next{background:var(--primary);color:#fff}
+.script-btn-done{background:var(--secondary);color:#fff}
+.script-speak-btn{background:none;border:none;font-size:1.3rem;cursor:pointer;padding:4px;margin-top:8px}
+.script-actions{display:flex;gap:8px;margin-top:10px}
+
 </style>
 </head>
 <body>
@@ -2107,6 +2233,27 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 </div>
 
 
+
+<!-- New/Edit Script Modal -->
+<div class="overlay" id="scriptModal">
+  <div class="modal" style="max-height:85vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="scriptModalTitle">💬 New Script</div>
+    <div class="modal-sub">Give your script a name and add the lines the child will say.</div>
+    <div class="auth-field" style="margin-bottom:12px">
+      <label style="font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-mid);display:block;margin-bottom:6px">Script Name</label>
+      <input type="text" id="scriptNameInput" class="text-input" placeholder="e.g. Greeting a Friend" style="width:100%">
+    </div>
+    <div class="field-label gray" style="margin-bottom:8px">Lines <span style="font-weight:500;color:var(--text-muted);text-transform:none;letter-spacing:0">(one per line — child taps through each)</span></div>
+    <textarea id="scriptLinesInput" style="width:100%;border:2px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-family:inherit;font-size:0.9rem;font-weight:500;color:var(--text);background:#FAFBFF;min-height:180px;resize:vertical;outline:none;-webkit-appearance:none;line-height:1.6" placeholder="Hi! How are you?&#10;My name is Marco.&#10;It's nice to meet you!&#10;Do you want to play?"></textarea>
+    <div style="font-size:0.72rem;color:var(--text-muted);font-weight:500;margin-top:6px;margin-bottom:16px">Each line becomes one tap. The app speaks each line aloud as the child taps through.</div>
+    <div style="display:flex;gap:10px">
+      <button class="btn-secondary" style="flex:1" onclick="closeModal('scriptModal')">Cancel</button>
+      <button class="btn-primary" style="flex:2" onclick="saveScript()">Save Script</button>
+    </div>
+  </div>
+</div>
+
 <!-- Save Set Modal -->
 <div class="overlay" id="saveModal">
   <div class="modal">
@@ -2220,6 +2367,47 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
 </div>
 
 
+
+
+<!-- PAGE: SCRIPTS -->
+<div class="page" id="page-scripts">
+  <div class="app-header" role="banner">
+    <div class="logo">Oi<span>GO</span></div>
+    <div class="tagline">Social Scripts</div>
+  </div>
+
+  <!-- Script Player (shown when running a script) -->
+  <div id="scriptPlayer" style="display:none">
+    <div class="script-player">
+      <div class="script-player-title" id="scriptPlayerTitle">Script</div>
+      <div class="script-line-box">
+        <div>
+          <div class="script-line-text" id="scriptLineText">...</div>
+          <div style="text-align:center">
+            <button class="script-speak-btn" onclick="speakCurrentLine()" aria-label="Repeat line">🔊</button>
+          </div>
+        </div>
+      </div>
+      <div class="script-progress" id="scriptProgress">Line 1 of 1</div>
+      <div class="script-nav">
+        <button class="script-nav button script-btn-prev" id="scriptPrevBtn" onclick="scriptNav(-1)">← Back</button>
+        <button class="script-nav button script-btn-next" id="scriptNextBtn" onclick="scriptNav(1)">Next →</button>
+      </div>
+      <button class="btn-ghost" style="width:100%;margin-top:12px;font-size:0.8rem" onclick="closeScriptPlayer()">✕ Close Script</button>
+    </div>
+  </div>
+
+  <!-- Script List -->
+  <div id="scriptListView">
+    <div id="scriptListEmpty" class="empty" style="display:none">
+      <div class="empty-icon">💬</div>
+      <div class="empty-text">No scripts yet</div>
+      <div class="empty-sub">Create scripts for greetings, games, asking for help, and more. Tap + to get started.</div>
+    </div>
+    <div id="scriptList"></div>
+    <button class="btn-primary" style="width:100%;margin-top:4px" onclick="openNewScriptModal()">+ Create New Script</button>
+  </div>
+</div>
 
 <!-- PAGE: SAVED -->
 <div class="page" id="page-saved">
@@ -2357,6 +2545,11 @@ body{font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-seri
       <line x1="8" y1="13" x2="16" y2="13"/>
       <line x1="8" y1="17" x2="12" y2="17"/>
     </svg>Log
+  </button>
+  <button class="nav-btn" id="navScripts" onclick="showPage('scripts',this)" aria-label="Scripts">
+    <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>Scripts
   </button>
   <button class="nav-btn" id="navSettings" onclick="showPage('settings',this)" aria-label="Settings">
     <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -2534,9 +2727,28 @@ document.addEventListener('touchstart', unlockAudio, {once:true, passive:true});
 document.addEventListener('click', unlockAudio, {once:true, passive:true});
 
 // ── ElevenLabs API call ───────────────────────────────────────────────────────
+// Pronunciation corrections for ElevenLabs
+var TTS_PRONOUNCE = {
+  'fries':      'frize',
+  'french fries':'french frize',
+  'grapes':     'grayps',
+};
+
+function fixPronunciation(text){
+  var t = text.toLowerCase();
+  var result = text;
+  Object.keys(TTS_PRONOUNCE).forEach(function(word){
+    var re = new RegExp('\\b' + word + '\\b', 'gi');
+    result = result.replace(re, TTS_PRONOUNCE[word]);
+  });
+  return result;
+}
+
 function speakEL(text,btnId,resultCb){
   var key=getElKey();
   if(!key){if(resultCb)resultCb(false);return;}
+  // Apply pronunciation corrections
+  text = fixPronunciation(text);
   if(_currentAudio){_currentAudio.pause();_currentAudio=null;}
 
   var gender=settings.voiceGender||'woman';
@@ -3029,7 +3241,9 @@ function buildCards(q,o,photos){
   document.getElementById('resultsArea').style.display='block';
   document.getElementById('typeAnswerBtn').style.display='flex';
   renderCards();
-  if(settings.autoSpeak)speak(question,'speakQBtn');
+  // Only auto-speak here if not already spoken by chip click handler
+  if(settings.autoSpeak && !window._chipJustSpoke) speak(question,'speakQBtn');
+  window._chipJustSpoke = false;
   setTimeout(function(){document.getElementById('resultsArea').scrollIntoView({behavior:'smooth',block:'start'});},80);
 }
 
@@ -3298,6 +3512,8 @@ document.getElementById('quickChips').addEventListener('click',function(e){
   document.getElementById('questionInput').value=chip.dataset.q;
   document.getElementById('optionsInput').value=chip.dataset.o;
   uploadedPhotos=[];selectedLibPhotos=[];renderPhotoPreviews();
+  // Speak question directly here (inside user gesture) before buildCards
+  if(settings.autoSpeak){ speak(chip.dataset.q, 'speakQBtn'); window._chipJustSpoke = true; }
   buildCards(chip.dataset.q,chip.dataset.o,[]);
 });
 
@@ -3305,6 +3521,203 @@ document.getElementById('quickChips').addEventListener('click',function(e){
 loadSettings();
 
 if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
+
+// ══════════════════════════════════════════════════════════════
+// SCRIPTS — Social script player for AAC communication
+// ══════════════════════════════════════════════════════════════
+
+var _scripts = [];           // array of {id, name, lines:[]}
+var _currentScript = null;   // script currently being played
+var _currentLine = 0;        // current line index
+
+// ── Load / Save scripts (localStorage, cloud-aware) ──────────
+function loadScripts(){
+  try{ _scripts = JSON.parse(localStorage.getItem('oigo_scripts')||'[]'); }
+  catch(e){ _scripts = []; }
+  // Seed with starter scripts if empty
+  if(_scripts.length === 0){
+    _scripts = [
+      {
+        id: 'starter-1',
+        name: '👋 Greeting a Friend',
+        lines: ['Hi! How are you?', 'My name is Marco.', "It's nice to meet you!", 'Do you want to play?']
+      },
+      {
+        id: 'starter-2',
+        name: '🎮 Asking to Join a Game',
+        lines: ['Can I play too?', 'What are the rules?', "I'll go next.", 'Good game!']
+      },
+      {
+        id: 'starter-3',
+        name: '🆘 Asking for Help',
+        lines: ['Excuse me.', 'Can you help me please?', 'Thank you!']
+      },
+      {
+        id: 'starter-4',
+        name: '🍽️ At a Restaurant',
+        lines: ['I would like to order please.', "I'll have the chicken.", 'Can I have water please?', 'Thank you, it looks great!']
+      }
+    ];
+    persistScripts();
+  }
+}
+
+function persistScripts(){
+  try{ localStorage.setItem('oigo_scripts', JSON.stringify(_scripts)); }catch(e){}
+}
+
+// ── Render script list ────────────────────────────────────────
+function renderScripts(){
+  loadScripts();
+  var list  = document.getElementById('scriptList');
+  var empty = document.getElementById('scriptListEmpty');
+  if(!list) return;
+  if(!_scripts.length){
+    if(empty) empty.style.display = 'block';
+    list.innerHTML = ''; return;
+  }
+  if(empty) empty.style.display = 'none';
+  list.innerHTML = '';
+  _scripts.forEach(function(script){
+    var el = document.createElement('div');
+    el.className = 'script-card';
+    var preview = script.lines[0] || '';
+    el.innerHTML =
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">' +
+        '<div style="flex:1;min-width:0">' +
+          '<div class="script-card-name">' + escHtml(script.name) + '</div>' +
+          '<div class="script-card-preview">"' + escHtml(preview) + '"</div>' +
+          '<div class="script-card-count">' + script.lines.length + ' line' + (script.lines.length!==1?'s':'') + '</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px;flex-shrink:0;margin-top:2px">' +
+          '<button class="btn-ghost" style="padding:6px 10px;font-size:0.75rem" onclick="editScript(\'' + script.id + '\')">✏️</button>' +
+          '<button class="btn-ghost" style="padding:6px 10px;font-size:0.75rem;color:#C0392B" onclick="deleteScript(\'' + script.id + '\')">🗑</button>' +
+        '</div>' +
+      '</div>';
+    el.addEventListener('click', function(e){
+      // Don't start if edit/delete was clicked
+      if(e.target.tagName === 'BUTTON') return;
+      startScript(script);
+    });
+    list.appendChild(el);
+  });
+}
+
+// ── Create / Edit script ─────────────────────────────────────
+var _editingScriptId = null;
+
+function openNewScriptModal(){
+  _editingScriptId = null;
+  document.getElementById('scriptModalTitle').textContent = '💬 New Script';
+  document.getElementById('scriptNameInput').value = '';
+  document.getElementById('scriptLinesInput').value = '';
+  openModal('scriptModal');
+  setTimeout(function(){ document.getElementById('scriptNameInput').focus(); }, 300);
+}
+
+function editScript(id){
+  var script = _scripts.find(function(s){ return s.id === id; });
+  if(!script) return;
+  _editingScriptId = id;
+  document.getElementById('scriptModalTitle').textContent = '✏️ Edit Script';
+  document.getElementById('scriptNameInput').value = script.name;
+  document.getElementById('scriptLinesInput').value = script.lines.join('\n');
+  openModal('scriptModal');
+}
+
+function saveScript(){
+  var name  = (document.getElementById('scriptNameInput').value||'').trim();
+  var raw   = (document.getElementById('scriptLinesInput').value||'').trim();
+  if(!name){ showToast('⚠️ Please enter a script name'); return; }
+  var lines = raw.split('\n').map(function(l){ return l.trim(); }).filter(function(l){ return l.length > 0; });
+  if(!lines.length){ showToast('⚠️ Please add at least one line'); return; }
+
+  if(_editingScriptId){
+    // Update existing
+    var idx = _scripts.findIndex(function(s){ return s.id === _editingScriptId; });
+    if(idx !== -1){ _scripts[idx].name = name; _scripts[idx].lines = lines; }
+  } else {
+    // Create new
+    _scripts.push({ id: 'script-' + Date.now(), name: name, lines: lines });
+  }
+  persistScripts();
+  closeModal('scriptModal');
+  renderScripts();
+  showToast('✅ Script saved!');
+}
+
+function deleteScript(id){
+  var script = _scripts.find(function(s){ return s.id === id; });
+  if(!script) return;
+  if(!confirm('Delete "' + script.name + '"?')) return;
+  _scripts = _scripts.filter(function(s){ return s.id !== id; });
+  persistScripts();
+  renderScripts();
+}
+
+// ── Script Player ─────────────────────────────────────────────
+function startScript(script){
+  _currentScript = script;
+  _currentLine   = 0;
+  document.getElementById('scriptListView').style.display  = 'none';
+  document.getElementById('scriptPlayer').style.display    = 'block';
+  updateScriptPlayer();
+  // Auto-speak first line
+  setTimeout(function(){ speakCurrentLine(); }, 400);
+}
+
+function updateScriptPlayer(){
+  if(!_currentScript) return;
+  var lines = _currentScript.lines;
+  var line  = lines[_currentLine] || '';
+  document.getElementById('scriptPlayerTitle').textContent = _currentScript.name;
+  document.getElementById('scriptLineText').textContent    = line;
+  document.getElementById('scriptProgress').textContent    =
+    'Line ' + (_currentLine + 1) + ' of ' + lines.length;
+
+  // Update buttons
+  var prevBtn = document.getElementById('scriptPrevBtn');
+  var nextBtn = document.getElementById('scriptNextBtn');
+  if(prevBtn) prevBtn.disabled = (_currentLine === 0);
+  if(prevBtn) prevBtn.style.opacity = (_currentLine === 0) ? '0.4' : '1';
+
+  var isLast = (_currentLine === lines.length - 1);
+  if(nextBtn){
+    nextBtn.textContent  = isLast ? '✅ Done' : 'Next →';
+    nextBtn.className    = 'script-nav button ' + (isLast ? 'script-btn-done' : 'script-btn-next');
+    nextBtn.onclick      = isLast ? closeScriptPlayer : function(){ scriptNav(1); };
+  }
+}
+
+function scriptNav(dir){
+  if(!_currentScript) return;
+  var newLine = _currentLine + dir;
+  if(newLine < 0 || newLine >= _currentScript.lines.length) return;
+  _currentLine = newLine;
+  updateScriptPlayer();
+  speakCurrentLine();
+}
+
+function speakCurrentLine(){
+  if(!_currentScript) return;
+  var line = _currentScript.lines[_currentLine];
+  if(line) speak(line, null);
+}
+
+function closeScriptPlayer(){
+  _currentScript = null;
+  _currentLine   = 0;
+  document.getElementById('scriptPlayer').style.display   = 'none';
+  document.getElementById('scriptListView').style.display = 'block';
+}
+
+// Hook into showPage to render scripts when tab is shown
+var _origShowPage = showPage;
+showPage = function(name, btn){
+  _origShowPage(name, btn);
+  if(name === 'scripts') renderScripts();
+};
+
 
 // ── PASSWORD GATE (browser/PWA only) ─────────────────────────────────────
 // Skipped entirely in native Capacitor app
